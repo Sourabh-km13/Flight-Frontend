@@ -10,14 +10,11 @@ function HomePage() {
       <main className="relative mx-auto max-w-7xl px-5 pb-16 pt-6 sm:px-8 lg:px-10">
         <section className="grid gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
           <div className="space-y-8">
-            <span className="eyebrow">Premium flight booking</span>
+            <span className="eyebrow">Flight booking</span>
             <div className="space-y-6">
               <h1 className="max-w-4xl text-5xl font-black tracking-[-0.05em] text-slate-950 sm:text-7xl">
-                Find the flight that fits your trip, not just your calendar.
+                Book flights faster.
               </h1>
-              <p className="max-w-2xl text-lg leading-8 text-slate-600">
-                A cleaner FlySmart experience for browsing routes, comparing prices, and getting into your travel dashboard quickly.
-              </p>
             </div>
 
             <div className="glass-panel grid max-w-4xl gap-4 rounded-[2rem] p-4 md:grid-cols-[1fr_1fr_1fr_auto]">
@@ -38,7 +35,7 @@ function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {['Free cancellation', 'Live routes', 'Secure account', 'Fast dashboard'].map((item) => (
+              {['Live routes', 'Secure login', 'Easy booking'].map((item) => (
                 <span key={item} className="rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-bold text-slate-700 shadow-sm">
                   {item}
                 </span>
@@ -52,9 +49,9 @@ function HomePage() {
               <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-2xl shadow-slate-900/25">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Featured fare</p>
+                    <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Route</p>
                     <h2 className="mt-4 text-4xl font-black tracking-tight">Mumbai to Delhi</h2>
-                    <p className="mt-2 text-sm text-slate-400">Non-stop · Economy · 2h 10m</p>
+                    <p className="mt-2 text-sm text-slate-400">Non-stop · 2h 10m</p>
                   </div>
                   <span className="rounded-2xl bg-white px-4 py-2 text-sm font-black text-slate-950">₹11,000</span>
                 </div>

@@ -45,7 +45,7 @@ function LoginPage() {
   return (
     <AuthCard
       title="Sign in"
-      subtitle="Secure access to your flight dashboard with fast token-based login."
+      subtitle=""
       footerText="New here?"
       footerLink="Create an account"
       footerHref="/signup"

@@ -102,9 +102,7 @@ function BookingPanel({
                 {isExpired ? 'Booking expired' : 'Booking initiated'}
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                {isExpired
-                  ? 'This reservation window has ended. Reserve seats again to continue.'
-                  : 'Complete payment before the timer ends to confirm this booking.'}
+                {isExpired ? 'Reserve again to continue.' : 'Complete payment before the timer ends.'}
               </p>
             </div>
             <div className={`rounded-2xl px-4 py-3 text-right ${isExpired ? 'bg-red-100 text-red-700' : 'bg-white text-slate-950'}`}>
@@ -149,7 +147,7 @@ function BookingPanel({
 
         {!flight.id ? (
           <p className="text-center text-sm font-semibold text-red-600">
-            This flight cannot be booked because it is missing a flight id.
+            Missing flight id.
           </p>
         ) : null}
       </div>

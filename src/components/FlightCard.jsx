@@ -15,8 +15,9 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
     boardingGate,
   } = flight
 
-  const routeCode = (value, fallback) => value || fallback
-  const airportName = (value, fallback) => (typeof value === 'string' ? value : value?.name || fallback)
+  const routeCode = (value, airport, fallback) => value || airport?.code || fallback
+  const airportName = (value, fallback) => (typeof value === 'string' ? value : value?.name || value?.code || fallback)
+  const airplaneName = typeof AirplaneDetail === 'string' ? AirplaneDetail : AirplaneDetail?.modelNumber || `Plane #${airplaneId ?? '-'}`
   const formatDate = (value) =>
     value
       ? new Date(value).toLocaleString('en-GB', {
@@ -37,9 +38,9 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
       <div className="p-6 sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-sky-700">{flightNumber ? `Flight ${flightNumber}` : 'Flight details'}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-sky-700">{flightNumber ? `Flight ${flightNumber}` : 'Flight'}</p>
             <h3 className="mt-3 text-3xl font-black tracking-tight text-slate-950">
-              {routeCode(departureAirportId, 'BOM')} to {routeCode(arrivalAirportId, 'DEL')}
+              {routeCode(departureAirportId, DepartureAirport, 'BOM')} to {routeCode(arrivalAirportId, ArrivalAirport, 'DEL')}
             </h3>
             <p className="mt-2 text-sm text-slate-500">
               {airportName(DepartureAirport, 'Mumbai')} to {airportName(ArrivalAirport, 'Delhi')}
@@ -53,8 +54,8 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
 
         <div className="mt-8 grid grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-[1.75rem] bg-slate-50 p-5">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Departure</p>
-            <p className="mt-3 text-3xl font-black text-slate-950">{routeCode(departureAirportId, 'BOM')}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">From</p>
+            <p className="mt-3 text-3xl font-black text-slate-950">{routeCode(departureAirportId, DepartureAirport, 'BOM')}</p>
             <p className="text-sm text-slate-500">{formatDate(departureTime)}</p>
           </div>
           <div className="flex items-center">
@@ -63,8 +64,8 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
             <span className="h-2.5 w-2.5 rounded-full bg-orange-300" />
           </div>
           <div className="text-right">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Arrival</p>
-            <p className="mt-3 text-3xl font-black text-slate-950">{routeCode(arrivalAirportId, 'DEL')}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">To</p>
+            <p className="mt-3 text-3xl font-black text-slate-950">{routeCode(arrivalAirportId, ArrivalAirport, 'DEL')}</p>
             <p className="text-sm text-slate-500">{formatDate(arrivalTime)}</p>
           </div>
         </div>
@@ -72,26 +73,24 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
           <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 text-sm text-slate-600">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Airplane</p>
-            <p className="mt-2 text-lg font-black text-slate-950">{AirplaneDetail ?? `Plane #${airplaneId ?? 1}`}</p>
-            <p className="mt-1 text-sm text-slate-500">ID: {airplaneId ?? '1'}</p>
+            <p className="mt-2 text-lg font-black text-slate-950">{airplaneName}</p>
+            <p className="mt-1 text-sm text-slate-500">ID: {airplaneId ?? '-'}</p>
           </div>
           <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 text-sm text-slate-600">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Boarding gate</p>
             <p className="mt-2 text-lg font-black text-slate-950">{boardingGate ?? boardingGage ?? 'TBD'}</p>
-            <p className="mt-1 text-sm text-slate-500">Gate details at check-in</p>
+            <p className="mt-1 text-sm text-slate-500">Gate</p>
           </div>
           <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 text-sm text-slate-600">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Created</p>
             <p className="mt-2 text-lg font-black text-slate-950">{formatDate(createdAt)}</p>
-            <p className="mt-1 text-sm text-slate-500">Inventory record</p>
+            <p className="mt-1 text-sm text-slate-500">Created</p>
           </div>
         </div>
 
         {onBook ? (
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-semibold text-slate-500">
-              Reserve seats now and finish payment within 5 minutes.
-            </p>
+            <p className="text-sm font-semibold text-slate-500">Pay within 5 minutes.</p>
             <button
               type="button"
               onClick={() => onBook(flight)}

@@ -35,6 +35,10 @@ function getApiErrorMessage(error, fallback) {
   )
 }
 
+function getApiData(response) {
+  return response.data?.data ?? response.data?.successResponse?.data ?? response.data
+}
+
 export async function loginUser(payload) {
   try {
     const response = await authApi.post('/api/v1/user/signin', payload)
@@ -60,7 +64,7 @@ export async function fetchFlights(token) {
         'x-access-token': token,
       },
     })
-    return response.data.data
+    return getApiData(response)
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Unable to fetch flights'), { cause: error })
   }

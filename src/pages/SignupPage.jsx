@@ -43,7 +43,7 @@ function SignupPage() {
   return (
     <AuthCard
       title="Create account"
-      subtitle="Launch your travel dashboard with one secure signup."
+      subtitle=""
       footerText="Already have one?"
       footerLink="Sign in"
       footerHref="/login"

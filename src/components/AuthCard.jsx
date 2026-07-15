@@ -13,10 +13,7 @@ function AuthCard({ title, subtitle, children, footerText, footerLink, footerHre
             <div className="absolute -bottom-24 left-10 h-64 w-64 rounded-full bg-orange-300/20 blur-3xl" />
             <div className="relative max-w-lg">
               <p className="eyebrow border-white/10 bg-white/10 text-sky-100">FlySmart</p>
-              <h2 className="mt-7 text-5xl font-black tracking-tight text-white">Book flights with the calm of a concierge.</h2>
-              <p className="mt-5 text-base leading-7 text-slate-300">
-                Sign in once, explore live routes, and manage travel from a dashboard shaped like a premium booking app.
-              </p>
+              <h2 className="mt-7 text-5xl font-black tracking-tight text-white">Book flights faster.</h2>
               <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur">
                 <div className="flex items-center justify-between">
                   <div>
@@ -44,7 +41,7 @@ function AuthCard({ title, subtitle, children, footerText, footerLink, footerHre
             <div className="mb-8">
               <p className="eyebrow">{title}</p>
               <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950">{title}</h1>
-              <p className="mt-3 text-base leading-7 text-slate-600">{subtitle}</p>
+              {subtitle ? <p className="mt-3 text-base leading-7 text-slate-600">{subtitle}</p> : null}
             </div>
             {children}
             <p className="mt-8 text-center text-sm text-slate-500">

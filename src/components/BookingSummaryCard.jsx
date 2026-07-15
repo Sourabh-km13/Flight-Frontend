@@ -17,11 +17,9 @@ function BookingSummaryCard({ booking, onDismiss }) {
         <div>
           <p className="eyebrow">Booking confirmed</p>
           <h3 className="mt-4 text-3xl font-black tracking-tight text-slate-950">
-            Your flight is booked
+            Flight booked
           </h3>
-          <p className="mt-2 text-sm text-slate-500">
-            Booking #{booking.id} is marked as {booking.status || 'booked'}.
-          </p>
+          <p className="mt-2 text-sm text-slate-500">Booking #{booking.id}</p>
         </div>
         <button
           type="button"

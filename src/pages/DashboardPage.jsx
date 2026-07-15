@@ -11,6 +11,26 @@ import { getUserIdFromToken } from '../utils/authToken'
 
 const BOOKING_EXPIRY_SECONDS = 5 * 60
 
+function normalizeFlights(response) {
+  if (Array.isArray(response)) {
+    return response
+  }
+
+  if (Array.isArray(response?.flights)) {
+    return response.flights
+  }
+
+  if (Array.isArray(response?.rows)) {
+    return response.rows
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data
+  }
+
+  return []
+}
+
 function DashboardPage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
@@ -79,7 +99,7 @@ function DashboardPage() {
 
     try {
       const response = await fetchFlights(token)
-      setFlights(Array.isArray(response) ? response : response.flights || [])
+      setFlights(normalizeFlights(response))
     } catch (err) {
       setError(err.message || 'Could not fetch flights')
     } finally {
@@ -205,12 +225,7 @@ function DashboardPage() {
               <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
               <div className="max-w-2xl">
                   <p className="eyebrow">Dashboard</p>
-                  <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">
-                    Welcome back, {user?.name || 'traveler'}.
-                  </h1>
-                  <p className="mt-4 text-base leading-7 text-slate-600">
-                    Search routes, compare cards, and keep your flight planning in one modern workspace.
-                  </p>
+                  <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Dashboard</h1>
                 </div>
                 <button
                   onClick={handleLogout}
@@ -232,12 +247,12 @@ function DashboardPage() {
             </div>
 
             <div className="bg-slate-950 p-7 text-white sm:p-9">
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Trip builder</p>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Trip</p>
               <div className="mt-6 space-y-4">
                 {[
                   { label: 'Origin', value: 'Mumbai', code: 'BOM' },
                   { label: 'Destination', value: 'Delhi', code: 'DEL' },
-                  { label: 'Preference', value: 'Non-stop', code: 'Best value' },
+                  { label: 'Type', value: 'Non-stop', code: 'Best value' },
                 ].map((item) => (
                   <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
                     <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">{item.label}</p>
@@ -255,9 +270,8 @@ function DashboardPage() {
         <section className="glass-panel rounded-[2.5rem] p-7 sm:p-9">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="eyebrow">Flight explorer</p>
-              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Available routes</h2>
-              <p className="mt-2 text-sm text-slate-600">Fetch live routes from your backend using the active session token.</p>
+              <p className="eyebrow">Flights</p>
+              <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Available flights</h2>
             </div>
             <button
               onClick={handleFetchFlights}
@@ -297,10 +311,7 @@ function DashboardPage() {
               <div className="soft-card rounded-[2rem] p-10 xl:col-span-2">
                 <div className="mx-auto max-w-md text-center">
                   <p className="text-5xl">FS</p>
-                  <h3 className="mt-5 text-2xl font-black text-slate-950">No flights loaded yet</h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-500">
-                    Click fetch flights to pull the latest route inventory from the flight service.
-                  </p>
+                  <h3 className="mt-5 text-2xl font-black text-slate-950">No flights loaded</h3>
                 </div>
               </div>
             ) : (
