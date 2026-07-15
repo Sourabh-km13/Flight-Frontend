@@ -13,6 +13,7 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
     ArrivalAirport,
     createdAt,
     boardingGate,
+    totalSeats,
   } = flight
 
   const routeCode = (value, airport, fallback) => value || airport?.code || fallback
@@ -82,9 +83,9 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
             <p className="mt-1 text-sm text-slate-500">Gate</p>
           </div>
           <div className="rounded-[1.5rem] border border-slate-100 bg-white p-5 text-sm text-slate-600">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Created</p>
-            <p className="mt-2 text-lg font-black text-slate-950">{formatDate(createdAt)}</p>
-            <p className="mt-1 text-sm text-slate-500">Created</p>
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Seats</p>
+            <p className="mt-2 text-lg font-black text-slate-950">{totalSeats ?? '-'}</p>
+            <p className="mt-1 text-sm text-slate-500">{createdAt ? formatDate(createdAt) : 'Available'}</p>
           </div>
         </div>
 

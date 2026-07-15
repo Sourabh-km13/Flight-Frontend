@@ -46,7 +46,7 @@ function BookingPanel({
   const canConfirmPayment = Boolean(initiatedBooking?.id) && !paymentLoading && !isExpired
 
   return (
-    <aside className="glass-panel sticky top-6 rounded-[2rem] p-6">
+    <aside className="glass-panel rounded-[2rem] p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="eyebrow">Book flight</p>
@@ -70,12 +70,12 @@ function BookingPanel({
           <input
             type="number"
             min="1"
-            max={availableSeats}
             value={seats}
             disabled={Boolean(initiatedBooking) || loading}
             onChange={(event) => onSeatsChange(Number(event.target.value))}
             className="mt-3 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-lg font-black text-slate-950 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:opacity-60"
           />
+          <p className="mt-2 text-sm font-semibold text-slate-500">{availableSeats} available</p>
         </label>
 
         <div className="grid grid-cols-2 gap-3">

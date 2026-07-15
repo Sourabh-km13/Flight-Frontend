@@ -37,6 +37,7 @@ function DashboardPage() {
   const token = useAuthStore((state) => state.token)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [flights, setFlights] = useState([])
+  const [search, setSearch] = useState({ from: '', to: '', tripDate: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedFlight, setSelectedFlight] = useState(null)
@@ -56,9 +57,9 @@ function DashboardPage() {
 
   const stats = useMemo(
     () => [
-      { label: 'Available flights', value: flights.length, detail: 'Loaded from flight service' },
-      { label: 'Last visit', value: new Date().toLocaleDateString('en-GB'), detail: 'Local session' },
-      { label: 'Traveler', value: user?.name || user?.email || 'Guest', detail: 'Signed-in profile' },
+      { label: 'Flights', value: flights.length },
+      { label: 'Date', value: new Date().toLocaleDateString('en-GB') },
+      { label: 'Traveler', value: user?.name || user?.email || 'Guest' },
     ],
     [flights.length, user],
   )
@@ -93,12 +94,62 @@ function DashboardPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [activeBooking, bookingExpired])
 
-  const handleFetchFlights = async () => {
+  const handleSearchChange = (event) => {
+    const { name, value } = event.target
+    setSearch((prev) => ({ ...prev, [name]: name === 'tripDate' ? value : value.toUpperCase() }))
+  }
+
+  const getFlightSearchParams = () => {
+    const from = search.from.trim().toUpperCase()
+    const to = search.to.trim().toUpperCase()
+    const params = {}
+
+    if (from && to) {
+      params.trips = `${from}-${to}`
+    }
+
+    if (search.tripDate) {
+      params.tripDate = search.tripDate
+    }
+
+    return params
+  }
+
+  const updateFlightSeats = (flightId, seatsDelta) => {
+    setFlights((prev) =>
+      prev.map((flight) =>
+        flight.id === flightId
+          ? { ...flight, totalSeats: Math.max(Number(flight.totalSeats ?? 0) + seatsDelta, 0) }
+          : flight,
+      ),
+    )
+    setSelectedFlight((prev) =>
+      prev?.id === flightId
+        ? { ...prev, totalSeats: Math.max(Number(prev.totalSeats ?? 0) + seatsDelta, 0) }
+        : prev,
+    )
+  }
+
+  const handleFetchFlights = async (event) => {
+    event?.preventDefault()
+    const from = search.from.trim()
+    const to = search.to.trim()
+
+    if ((from && !to) || (!from && to)) {
+      setError('Enter both From and To.')
+      return
+    }
+
     setLoading(true)
     setError('')
+    setSelectedFlight(null)
+    setActiveBooking(null)
+    setBookingExpiresAt(null)
+    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
+    setBookingError('')
 
     try {
-      const response = await fetchFlights(token)
+      const response = await fetchFlights(token, getFlightSearchParams())
       setFlights(normalizeFlights(response))
     } catch (err) {
       setError(err.message || 'Could not fetch flights')
@@ -118,10 +169,8 @@ function DashboardPage() {
 
   const handleSeatChange = (value) => {
     const nextValue = Number.isFinite(value) ? value : 1
-    const availableSeats = Number(selectedFlight?.totalSeats ?? selectedFlight?.seats ?? 9)
-    const maxSeats = Number.isFinite(availableSeats) && availableSeats > 0 ? availableSeats : 9
 
-    setSeatCount(Math.min(Math.max(nextValue, 1), maxSeats))
+    setSeatCount(Math.max(nextValue, 1))
   }
 
   const handleCreateBooking = async () => {
@@ -150,6 +199,7 @@ function DashboardPage() {
 
       setActiveBooking(booking)
       setBookingExpiresAt(new Date(booking.createdAt || Date.now()).getTime() + BOOKING_EXPIRY_SECONDS * 1000)
+      updateFlightSeats(selectedFlight.id, -seatCount)
     } catch (err) {
       setBookingError(err.message || 'Could not create booking')
     } finally {
@@ -247,22 +297,46 @@ function DashboardPage() {
             </div>
 
             <div className="bg-slate-950 p-7 text-white sm:p-9">
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Trip</p>
-              <div className="mt-6 space-y-4">
-                {[
-                  { label: 'Origin', value: 'Mumbai', code: 'BOM' },
-                  { label: 'Destination', value: 'Delhi', code: 'DEL' },
-                  { label: 'Type', value: 'Non-stop', code: 'Best value' },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/10 p-5">
-                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-slate-400">{item.label}</p>
-                    <div className="mt-2 flex items-center justify-between gap-4">
-                      <p className="text-2xl font-black">{item.value}</p>
-                      <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-950">{item.code}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Search</p>
+              <form onSubmit={handleFetchFlights} className="mt-6 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">From</span>
+                    <input
+                      name="from"
+                      value={search.from}
+                      onChange={handleSearchChange}
+                      placeholder="MUM"
+                      maxLength="3"
+                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black uppercase text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">To</span>
+                    <input
+                      name="to"
+                      value={search.to}
+                      onChange={handleSearchChange}
+                      placeholder="DEL"
+                      maxLength="3"
+                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black uppercase text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Date</span>
+                  <input
+                    name="tripDate"
+                    type="date"
+                    value={search.tripDate}
+                    onChange={handleSearchChange}
+                    className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none focus:border-sky-300"
+                  />
+                </label>
+                <button type="submit" disabled={loading} className="gradient-button w-full px-5 py-4 text-sm font-black">
+                  {loading ? 'Searching...' : 'Search flights'}
+                </button>
+              </form>
             </div>
           </div>
         </section>
@@ -294,8 +368,7 @@ function DashboardPage() {
             </div>
           ) : null}
 
-          <div className={`mt-8 grid gap-6 ${selectedFlight ? 'xl:grid-cols-[minmax(0,1fr)_380px]' : ''}`}>
-            <div className={`grid gap-6 ${selectedFlight ? '' : 'xl:grid-cols-2'}`}>
+          <div className="mt-8 grid gap-6 xl:grid-cols-2">
             {loading ? (
               [0, 1].map((item) => (
                 <div key={item} className="soft-card h-72 animate-pulse rounded-[2rem] p-6">
@@ -316,34 +389,35 @@ function DashboardPage() {
               </div>
             ) : (
               flights.map((flight, index) => (
-                <FlightCard
-                  key={flight.id || `${flight.flightNumber || 'flight'}-${index}`}
-                  flight={flight}
-                  onBook={handleSelectFlight}
-                  bookingDisabled={!flight.id || bookingLoading || paymentLoading}
-                  bookingLabel={selectedFlight?.id === flight.id ? 'Selected' : 'Book now'}
-                  isSelected={selectedFlight?.id === flight.id}
-                />
+                <div key={flight.id || `${flight.flightNumber || 'flight'}-${index}`} className="contents">
+                  <FlightCard
+                    flight={flight}
+                    onBook={handleSelectFlight}
+                    bookingDisabled={!flight.id || bookingLoading || paymentLoading}
+                    bookingLabel={selectedFlight?.id === flight.id ? 'Selected' : 'Book now'}
+                    isSelected={selectedFlight?.id === flight.id}
+                  />
+                  {selectedFlight?.id === flight.id ? (
+                    <div className="xl:col-span-2">
+                      <BookingPanel
+                        flight={selectedFlight}
+                        seats={seatCount}
+                        initiatedBooking={activeBooking}
+                        remainingSeconds={remainingSeconds}
+                        isExpired={bookingExpired}
+                        loading={bookingLoading}
+                        paymentLoading={paymentLoading}
+                        error={visibleBookingError}
+                        onSeatsChange={handleSeatChange}
+                        onCreateBooking={handleCreateBooking}
+                        onConfirmPayment={handleConfirmPayment}
+                        onClose={handleCloseBookingPanel}
+                      />
+                    </div>
+                  ) : null}
+                </div>
               ))
             )}
-            </div>
-
-            {selectedFlight ? (
-              <BookingPanel
-                flight={selectedFlight}
-                seats={seatCount}
-                initiatedBooking={activeBooking}
-                remainingSeconds={remainingSeconds}
-                isExpired={bookingExpired}
-                loading={bookingLoading}
-                paymentLoading={paymentLoading}
-                error={visibleBookingError}
-                onSeatsChange={handleSeatChange}
-                onCreateBooking={handleCreateBooking}
-                onConfirmPayment={handleConfirmPayment}
-                onClose={handleCloseBookingPanel}
-              />
-            ) : null}
           </div>
         </section>
       </main>

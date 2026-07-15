@@ -57,9 +57,10 @@ export async function signupUser(payload) {
   }
 }
 
-export async function fetchFlights(token) {
+export async function fetchFlights(token, params = {}) {
   try {
     const response = await authApi.get('/flightservice/api/v1/flight', {
+      params,
       headers: {
         'x-access-token': token,
       },
