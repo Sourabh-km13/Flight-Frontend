@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthCard from '../components/AuthCard'
 import InputField from '../components/InputField'
 import PrimaryButton from '../components/PrimaryButton'
@@ -72,6 +72,11 @@ function LoginPage() {
           {loading ? 'Signing in...' : 'Sign in'}
         </PrimaryButton>
       </form>
+      <p className="mt-4 text-center text-xs text-slate-400">
+        <Link to="/admin/signin" className="font-semibold text-slate-500 transition hover:text-slate-800">
+          Admin portal
+        </Link>
+      </p>
     </AuthCard>
   )
 }
