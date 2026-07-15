@@ -7,12 +7,29 @@ const bookingApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+function normalizeMessage(value) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join(', ')
+  }
+
+  if (typeof value === 'string') {
+    return value
+  }
+
+  return ''
+}
+
 function getErrorMessage(error, fallback) {
+  const data = error.response?.data
+  const failResponse = data?.failResponse
+
   return (
-    error.response?.data?.message ||
-    error.response?.data?.failResponse?.message ||
-    error.response?.data?.failResponse?.data?.message ||
-    error.response?.data?.error?.message ||
+    normalizeMessage(failResponse?.data?.explanation) ||
+    normalizeMessage(failResponse?.data?.message) ||
+    normalizeMessage(failResponse?.error) ||
+    normalizeMessage(data?.error?.message) ||
+    normalizeMessage(data?.message) ||
+    normalizeMessage(failResponse?.message) ||
     fallback
   )
 }
