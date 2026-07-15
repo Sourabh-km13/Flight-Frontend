@@ -16,9 +16,6 @@ function Navbar() {
         </span>
       </Link>
       <div className="hidden items-center gap-7 md:flex">
-        <Link to="/" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
-          Home
-        </Link>
         {token ? (
           <>
             <Link to="/dashboard" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">

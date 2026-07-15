@@ -97,6 +97,7 @@ function DashboardPage() {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [bookingExpiresAt, setBookingExpiresAt] = useState(null)
   const [remainingSeconds, setRemainingSeconds] = useState(BOOKING_EXPIRY_SECONDS)
+  const [showSearch, setShowSearch] = useState(false)
 
   const bookingExpired = Boolean(activeBooking && bookingExpiresAt && remainingSeconds <= 0)
   const visibleBookingError = bookingExpired
@@ -247,6 +248,26 @@ function DashboardPage() {
     }
   }
 
+  const handleFetchAllFlights = async () => {
+    setSearch({ from: '', to: '', tripDate: '', fromOption: null, toOption: null })
+    setLoading(true)
+    setError('')
+    setSelectedFlight(null)
+    setActiveBooking(null)
+    setBookingExpiresAt(null)
+    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
+    setBookingError('')
+
+    try {
+      const response = await fetchFlights(token)
+      setFlights(normalizeFlights(response))
+    } catch (err) {
+      setError(err.message || 'Could not fetch flights')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSelectFlight = (flight) => {
     setSelectedFlight(flight)
     setSeatCount(1)
@@ -358,44 +379,65 @@ function DashboardPage() {
       <Navbar />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_32%)]" />
       <main className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
-        <section className="glass-panel overflow-hidden rounded-[2.5rem]">
-          <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="p-7 sm:p-9">
-              <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-              <div className="max-w-2xl">
-                  <p className="eyebrow">Dashboard</p>
-                  <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Dashboard</h1>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    to="/bookings"
-                    className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
-                  >
-                    Booked tickets
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                {stats.map((stat) => (
-                  <div key={stat.label} className="soft-card rounded-[1.75rem] p-5">
-                    <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">{stat.label}</p>
-                    <p className="mt-3 truncate text-2xl font-black text-slate-950">{stat.value}</p>
-                    <p className="mt-1 text-sm text-slate-500">{stat.detail}</p>
-                  </div>
-                ))}
-              </div>
+        <section className="glass-panel overflow-hidden rounded-[2.5rem] p-7 sm:p-9">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="max-w-2xl">
+              <p className="eyebrow">Dashboard</p>
+              <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Welcome back</h1>
             </div>
+            <button
+              onClick={handleLogout}
+              className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
+            >
+              Logout
+            </button>
+          </div>
 
-            <div className="bg-slate-950 p-7 text-white sm:p-9">
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Search</p>
-              {locationsError ? <p className="mt-3 text-sm font-semibold text-red-200">{locationsError}</p> : null}
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {stats.map((stat) => (
+              <div key={stat.label} className="soft-card rounded-[1.75rem] p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">{stat.label}</p>
+                <p className="mt-3 truncate text-2xl font-black text-slate-950">{stat.value}</p>
+                <p className="mt-1 text-sm text-slate-500">{stat.detail}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setShowSearch((prev) => !prev)}
+              className="group relative overflow-hidden rounded-[2rem] bg-slate-950 p-7 text-left text-white shadow-2xl shadow-sky-950/20 transition duration-300 hover:-translate-y-1"
+            >
+              <span className="absolute -right-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-sky-400/30 blur-2xl" />
+              <span className="absolute bottom-0 left-8 h-24 w-48 animate-pulse rounded-full bg-orange-300/20 blur-2xl" />
+              <span className="relative block text-xs font-bold uppercase tracking-[0.28em] text-sky-200">Search flights</span>
+              <span className="relative mt-5 block text-3xl font-black tracking-tight">Find your next route</span>
+              <span className="relative mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950 transition group-hover:scale-105">
+                {showSearch ? 'Hide search' : 'Open search'}
+              </span>
+            </button>
+
+            <Link
+              to="/bookings"
+              className="group relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-400 via-rose-400 to-sky-500 p-7 text-white shadow-2xl shadow-orange-900/20 transition duration-300 hover:-translate-y-1"
+            >
+              <span className="absolute -left-12 -top-12 h-44 w-44 animate-pulse rounded-full bg-white/25 blur-2xl" />
+              <span className="absolute bottom-4 right-6 h-28 w-28 animate-pulse rounded-full bg-slate-950/20 blur-xl" />
+              <span className="relative block text-xs font-bold uppercase tracking-[0.28em] text-white/80">Booked tickets</span>
+              <span className="relative mt-5 block text-3xl font-black tracking-tight">View upcoming journeys</span>
+              <span className="relative mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950 transition group-hover:scale-105">
+                Open tickets
+              </span>
+            </Link>
+          </div>
+
+          {showSearch ? (
+            <div className="mt-6 rounded-[2rem] bg-slate-950 p-6 text-white shadow-2xl shadow-slate-900/20">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Search</p>
+                {locationsError ? <p className="text-sm font-semibold text-red-200">{locationsError}</p> : null}
+              </div>
               <form onSubmit={handleFetchFlights} className="mt-6 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CitySearchInput
@@ -427,12 +469,22 @@ function DashboardPage() {
                     className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none focus:border-sky-300"
                   />
                 </label>
-                <button type="submit" disabled={loading} className="gradient-button w-full px-5 py-4 text-sm font-black">
-                  {loading ? 'Searching...' : 'Search flights'}
-                </button>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button type="submit" disabled={loading} className="gradient-button px-5 py-4 text-sm font-black">
+                    {loading ? 'Searching...' : 'Search flights'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFetchAllFlights}
+                    disabled={loading}
+                    className="rounded-full border border-white/15 bg-white/10 px-5 py-4 text-sm font-black text-white transition hover:bg-white/15 disabled:opacity-50"
+                  >
+                    {loading ? 'Loading...' : 'Fetch all flights'}
+                  </button>
+                </div>
               </form>
             </div>
-          </div>
+          ) : null}
         </section>
 
         <section className="glass-panel rounded-[2.5rem] p-7 sm:p-9">
@@ -442,11 +494,10 @@ function DashboardPage() {
               <h2 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Available flights</h2>
             </div>
             <button
-              onClick={handleFetchFlights}
-              disabled={loading}
+              onClick={() => setShowSearch(true)}
               className="gradient-button px-7 py-4 text-sm font-black"
             >
-              {loading ? 'Loading flights...' : 'Fetch flights'}
+              Search flights
             </button>
           </div>
 
