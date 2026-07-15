@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import BookingPanel from '../components/BookingPanel'
+import BookingSummaryCard from '../components/BookingSummaryCard'
+import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
+import { createBooking, makePayment } from '../services/bookingService'
 import { fetchFlights } from '../services/authService'
-import FlightCard from '../components/FlightCard'
+import { getUserIdFromToken } from '../utils/authToken'
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -13,6 +17,13 @@ function DashboardPage() {
   const [flights, setFlights] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [selectedFlight, setSelectedFlight] = useState(null)
+  const [seatCount, setSeatCount] = useState(1)
+  const [activeBooking, setActiveBooking] = useState(null)
+  const [confirmedBooking, setConfirmedBooking] = useState(null)
+  const [bookingError, setBookingError] = useState('')
+  const [bookingLoading, setBookingLoading] = useState(false)
+  const [paymentLoading, setPaymentLoading] = useState(false)
 
   const stats = useMemo(
     () => [
@@ -35,6 +46,96 @@ function DashboardPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSelectFlight = (flight) => {
+    setSelectedFlight(flight)
+    setSeatCount(1)
+    setActiveBooking(null)
+    setBookingError('')
+  }
+
+  const handleSeatChange = (value) => {
+    const nextValue = Number.isFinite(value) ? value : 1
+    const availableSeats = Number(selectedFlight?.totalSeats ?? selectedFlight?.seats ?? 9)
+    const maxSeats = Number.isFinite(availableSeats) && availableSeats > 0 ? availableSeats : 9
+
+    setSeatCount(Math.min(Math.max(nextValue, 1), maxSeats))
+  }
+
+  const handleCreateBooking = async () => {
+    const userId = getUserIdFromToken(token)
+
+    if (!selectedFlight?.id) {
+      setBookingError('This flight cannot be booked because it is missing a flight id.')
+      return
+    }
+
+    if (!userId) {
+      setBookingError('Could not identify the signed-in user from the current session.')
+      return
+    }
+
+    setBookingLoading(true)
+    setBookingError('')
+
+    try {
+      const booking = await createBooking({
+        token,
+        flightId: selectedFlight.id,
+        userId,
+        noOfSeats: seatCount,
+      })
+
+      setActiveBooking(booking)
+    } catch (err) {
+      setBookingError(err.message || 'Could not create booking')
+    } finally {
+      setBookingLoading(false)
+    }
+  }
+
+  const handleConfirmPayment = async () => {
+    const userId = getUserIdFromToken(token)
+
+    if (!activeBooking?.id) {
+      setBookingError('Create a booking before confirming payment.')
+      return
+    }
+
+    if (!userId) {
+      setBookingError('Could not identify the signed-in user from the current session.')
+      return
+    }
+
+    setPaymentLoading(true)
+    setBookingError('')
+
+    try {
+      const payment = await makePayment({
+        token,
+        bookingId: activeBooking.id,
+        userId,
+        totalCost: activeBooking.totalCost,
+      })
+      const confirmed = Array.isArray(payment) ? { ...activeBooking, status: 'booked' } : payment
+
+      setConfirmedBooking(confirmed)
+      setActiveBooking(null)
+      setSelectedFlight(null)
+      setSeatCount(1)
+    } catch (err) {
+      setBookingError(err.message || 'Could not confirm payment')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  const handleCloseBookingPanel = () => {
+    setSelectedFlight(null)
+    setActiveBooking(null)
+    setBookingError('')
+    setSeatCount(1)
   }
 
   const handleLogout = () => {
@@ -122,7 +223,14 @@ function DashboardPage() {
             </div>
           ) : null}
 
-          <div className="mt-8 grid gap-6 xl:grid-cols-2">
+          {confirmedBooking ? (
+            <div className="mt-8">
+              <BookingSummaryCard booking={confirmedBooking} onDismiss={() => setConfirmedBooking(null)} />
+            </div>
+          ) : null}
+
+          <div className={`mt-8 grid gap-6 ${selectedFlight ? 'xl:grid-cols-[minmax(0,1fr)_380px]' : ''}`}>
+            <div className={`grid gap-6 ${selectedFlight ? '' : 'xl:grid-cols-2'}`}>
             {loading ? (
               [0, 1].map((item) => (
                 <div key={item} className="soft-card h-72 animate-pulse rounded-[2rem] p-6">
@@ -146,9 +254,32 @@ function DashboardPage() {
               </div>
             ) : (
               flights.map((flight, index) => (
-                <FlightCard key={flight.id || `${flight.flightNumber || 'flight'}-${index}`} flight={flight} />
+                <FlightCard
+                  key={flight.id || `${flight.flightNumber || 'flight'}-${index}`}
+                  flight={flight}
+                  onBook={handleSelectFlight}
+                  bookingDisabled={!flight.id || bookingLoading || paymentLoading}
+                  bookingLabel={selectedFlight?.id === flight.id ? 'Selected' : 'Book now'}
+                  isSelected={selectedFlight?.id === flight.id}
+                />
               ))
             )}
+            </div>
+
+            {selectedFlight ? (
+              <BookingPanel
+                flight={selectedFlight}
+                seats={seatCount}
+                initiatedBooking={activeBooking}
+                loading={bookingLoading}
+                paymentLoading={paymentLoading}
+                error={bookingError}
+                onSeatsChange={handleSeatChange}
+                onCreateBooking={handleCreateBooking}
+                onConfirmPayment={handleConfirmPayment}
+                onClose={handleCloseBookingPanel}
+              />
+            ) : null}
           </div>
         </section>
       </main>

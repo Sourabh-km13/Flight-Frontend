@@ -1,4 +1,4 @@
-function FlightCard({ flight }) {
+function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled = false, isSelected = false }) {
   const {
     flightNumber,
     price,
@@ -29,7 +29,11 @@ function FlightCard({ flight }) {
       : '-'
 
   return (
-    <article className="soft-card overflow-hidden rounded-[2rem] transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_28px_70px_-40px_rgba(3,105,161,0.75)]">
+    <article
+      className={`soft-card overflow-hidden rounded-[2rem] transition duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_28px_70px_-40px_rgba(3,105,161,0.75)] ${
+        isSelected ? 'ring-4 ring-sky-500/20' : ''
+      }`}
+    >
       <div className="p-6 sm:p-7">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
@@ -82,6 +86,22 @@ function FlightCard({ flight }) {
             <p className="mt-1 text-sm text-slate-500">Inventory record</p>
           </div>
         </div>
+
+        {onBook ? (
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold text-slate-500">
+              Reserve seats now and finish payment within 5 minutes.
+            </p>
+            <button
+              type="button"
+              onClick={() => onBook(flight)}
+              disabled={bookingDisabled}
+              className="gradient-button px-6 py-3 text-sm font-black disabled:opacity-50"
+            >
+              {bookingLabel}
+            </button>
+          </div>
+        ) : null}
       </div>
     </article>
   )
