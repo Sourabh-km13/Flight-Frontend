@@ -20,9 +20,14 @@ function Navbar() {
           Home
         </Link>
         {token ? (
-          <Link to="/dashboard" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
-            Dashboard
-          </Link>
+          <>
+            <Link to="/dashboard" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+              Book tickets
+            </Link>
+            <Link to="/bookings" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+              Booked tickets
+            </Link>
+          </>
         ) : (
           <Link to="/login" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
             Sign in

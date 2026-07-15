@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import BookingPanel from '../components/BookingPanel'
 import BookingSummaryCard from '../components/BookingSummaryCard'
 import CitySearchInput from '../components/CitySearchInput'
@@ -366,12 +366,20 @@ function DashboardPage() {
                   <p className="eyebrow">Dashboard</p>
                   <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Dashboard</h1>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
-                >
-                  Logout
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    to="/bookings"
+                    className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
+                  >
+                    Booked tickets
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-3">
