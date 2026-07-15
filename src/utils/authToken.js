@@ -22,6 +22,14 @@ export function getUserIdFromToken(token) {
   return getJwtPayload(token)?.id ?? null
 }
 
+export function getRoleFromToken(token) {
+  return getJwtPayload(token)?.role ?? null
+}
+
+export function isAdminToken(token) {
+  return getRoleFromToken(token) === 'admin'
+}
+
 export function isExpiredJwt(token) {
   const payload = getJwtPayload(token)
 
