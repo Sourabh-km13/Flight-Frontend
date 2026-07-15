@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BookingPanel from '../components/BookingPanel'
 import BookingSummaryCard from '../components/BookingSummaryCard'
+import CitySearchInput from '../components/CitySearchInput'
 import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { createBooking, makePayment } from '../services/bookingService'
-import { fetchFlights } from '../services/authService'
+import { fetchAirports, fetchCities, fetchFlights } from '../services/authService'
 import { getUserIdFromToken } from '../utils/authToken'
 
 const BOOKING_EXPIRY_SECONDS = 5 * 60
@@ -31,13 +32,60 @@ function normalizeFlights(response) {
   return []
 }
 
+function normalizeList(response) {
+  if (Array.isArray(response)) {
+    return response
+  }
+
+  if (Array.isArray(response?.rows)) {
+    return response.rows
+  }
+
+  if (Array.isArray(response?.data)) {
+    return response.data
+  }
+
+  return []
+}
+
+function buildLocationOptions(citiesResponse, airportsResponse) {
+  const cities = normalizeList(citiesResponse)
+  const airports = normalizeList(airportsResponse)
+  const cityById = new Map(cities.map((city) => [String(city.id), city.name]))
+
+  return airports
+    .filter((airport) => airport?.code)
+    .map((airport) => {
+      const code = String(airport.code).toUpperCase()
+      const cityName = cityById.get(String(airport.cityId)) || airport.cityName || airport.city?.name || airport.name || code
+      const airportName = airport.name || ''
+
+      return {
+        label: `${cityName} (${code})`,
+        cityName,
+        airportName,
+        code,
+      }
+    })
+    .sort((first, second) => first.label.localeCompare(second.label))
+}
+
 function DashboardPage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
   const clearAuth = useAuthStore((state) => state.clearAuth)
   const [flights, setFlights] = useState([])
-  const [search, setSearch] = useState({ from: '', to: '', tripDate: '' })
+  const [search, setSearch] = useState({
+    from: '',
+    to: '',
+    tripDate: '',
+    fromOption: null,
+    toOption: null,
+  })
+  const [locationOptions, setLocationOptions] = useState([])
+  const [locationsLoading, setLocationsLoading] = useState(false)
+  const [locationsError, setLocationsError] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedFlight, setSelectedFlight] = useState(null)
@@ -63,6 +111,37 @@ function DashboardPage() {
     ],
     [flights.length, user],
   )
+
+  useEffect(() => {
+    let shouldUpdate = true
+
+    const loadLocationOptions = async () => {
+      setLocationsLoading(true)
+      setLocationsError('')
+
+      try {
+        const [citiesResponse, airportsResponse] = await Promise.all([fetchCities(token), fetchAirports(token)])
+
+        if (shouldUpdate) {
+          setLocationOptions(buildLocationOptions(citiesResponse, airportsResponse))
+        }
+      } catch (err) {
+        if (shouldUpdate) {
+          setLocationsError(err.message || 'Could not load city list')
+        }
+      } finally {
+        if (shouldUpdate) {
+          setLocationsLoading(false)
+        }
+      }
+    }
+
+    loadLocationOptions()
+
+    return () => {
+      shouldUpdate = false
+    }
+  }, [token])
 
   useEffect(() => {
     if (!activeBooking || !bookingExpiresAt) {
@@ -94,18 +173,23 @@ function DashboardPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [activeBooking, bookingExpired])
 
-  const handleSearchChange = (event) => {
-    const { name, value } = event.target
-    setSearch((prev) => ({ ...prev, [name]: name === 'tripDate' ? value : value.toUpperCase() }))
+  const handleLocationInputChange = (field, value) => {
+    setSearch((prev) => ({ ...prev, [field]: value, [`${field}Option`]: null }))
+  }
+
+  const handleLocationSelect = (field, option) => {
+    setSearch((prev) => ({ ...prev, [field]: option.label, [`${field}Option`]: option }))
+  }
+
+  const handleTripDateChange = (event) => {
+    setSearch((prev) => ({ ...prev, tripDate: event.target.value }))
   }
 
   const getFlightSearchParams = () => {
-    const from = search.from.trim().toUpperCase()
-    const to = search.to.trim().toUpperCase()
     const params = {}
 
-    if (from && to) {
-      params.trips = `${from}-${to}`
+    if (search.fromOption && search.toOption) {
+      params.trips = `${search.fromOption.code}-${search.toOption.code}`
     }
 
     if (search.tripDate) {
@@ -137,6 +221,11 @@ function DashboardPage() {
 
     if ((from && !to) || (!from && to)) {
       setError('Enter both From and To.')
+      return
+    }
+
+    if ((from || to) && (!search.fromOption || !search.toOption)) {
+      setError('Select From and To from the city list.')
       return
     }
 
@@ -298,30 +387,27 @@ function DashboardPage() {
 
             <div className="bg-slate-950 p-7 text-white sm:p-9">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-slate-400">Search</p>
+              {locationsError ? <p className="mt-3 text-sm font-semibold text-red-200">{locationsError}</p> : null}
               <form onSubmit={handleFetchFlights} className="mt-6 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">From</span>
-                    <input
-                      name="from"
-                      value={search.from}
-                      onChange={handleSearchChange}
-                      placeholder="MUM"
-                      maxLength="3"
-                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black uppercase text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">To</span>
-                    <input
-                      name="to"
-                      value={search.to}
-                      onChange={handleSearchChange}
-                      placeholder="DEL"
-                      maxLength="3"
-                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black uppercase text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
-                    />
-                  </label>
+                  <CitySearchInput
+                    label="From"
+                    value={search.from}
+                    selectedOption={search.fromOption}
+                    options={locationOptions}
+                    placeholder={locationsLoading ? 'Loading cities...' : 'Mumbai'}
+                    onChange={(value) => handleLocationInputChange('from', value)}
+                    onSelect={(option) => handleLocationSelect('from', option)}
+                  />
+                  <CitySearchInput
+                    label="To"
+                    value={search.to}
+                    selectedOption={search.toOption}
+                    options={locationOptions}
+                    placeholder={locationsLoading ? 'Loading cities...' : 'Delhi'}
+                    onChange={(value) => handleLocationInputChange('to', value)}
+                    onSelect={(option) => handleLocationSelect('to', option)}
+                  />
                 </div>
                 <label className="block">
                   <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Date</span>
@@ -329,7 +415,7 @@ function DashboardPage() {
                     name="tripDate"
                     type="date"
                     value={search.tripDate}
-                    onChange={handleSearchChange}
+                    onChange={handleTripDateChange}
                     className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none focus:border-sky-300"
                   />
                 </label>
