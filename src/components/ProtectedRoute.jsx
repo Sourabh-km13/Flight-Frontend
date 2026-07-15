@@ -1,15 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import useAuthStore from '../contexts/authStore'
-
-function isExpiredJwt(token) {
-  try {
-    const payload = JSON.parse(window.atob(token.split('.')[1]))
-    return typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now()
-  } catch {
-    return false
-  }
-}
+import { isExpiredJwt } from '../utils/authToken'
 
 function ProtectedRoute({ children }) {
   const location = useLocation()
