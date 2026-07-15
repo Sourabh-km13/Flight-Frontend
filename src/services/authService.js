@@ -7,12 +7,40 @@ const authApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+function normalizeMessage(value) {
+  if (Array.isArray(value)) {
+    return value.filter(Boolean).join(', ')
+  }
+
+  if (typeof value === 'string') {
+    return value
+  }
+
+  return ''
+}
+
+function getApiErrorMessage(error, fallback) {
+  const data = error.response?.data
+  const failResponse = data?.failResponse
+
+  return (
+    normalizeMessage(failResponse?.data?.explanation) ||
+    normalizeMessage(failResponse?.data?.message) ||
+    normalizeMessage(failResponse?.error) ||
+    normalizeMessage(data?.error) ||
+    normalizeMessage(data?.explanation) ||
+    normalizeMessage(data?.message) ||
+    normalizeMessage(failResponse?.message) ||
+    fallback
+  )
+}
+
 export async function loginUser(payload) {
   try {
     const response = await authApi.post('/api/v1/user/signin', payload)
     return response.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Login failed', { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Login failed'), { cause: error })
   }
 }
 
@@ -21,7 +49,7 @@ export async function signupUser(payload) {
     const response = await authApi.post('/api/v1/user/signup', payload)
     return response.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Signup failed', { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Signup failed'), { cause: error })
   }
 }
 
@@ -34,6 +62,6 @@ export async function fetchFlights(token) {
     })
     return response.data.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Unable to fetch flights', { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Unable to fetch flights'), { cause: error })
   }
 }
