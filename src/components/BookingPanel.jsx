@@ -13,10 +13,20 @@ function formatCurrency(value) {
   }).format(Number(value || 0))
 }
 
+function formatCountdown(seconds) {
+  const safeSeconds = Math.max(seconds, 0)
+  const minutes = Math.floor(safeSeconds / 60)
+  const remainingSeconds = safeSeconds % 60
+
+  return `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
+}
+
 function BookingPanel({
   flight,
   seats,
   initiatedBooking,
+  remainingSeconds,
+  isExpired,
   loading,
   paymentLoading,
   error,
@@ -33,7 +43,7 @@ function BookingPanel({
   const pricePerSeat = Number(flight.price || 0)
   const displayTotal = initiatedBooking?.totalCost ?? pricePerSeat * seats
   const canCreateBooking = Boolean(flight.id) && !initiatedBooking && !loading
-  const canConfirmPayment = Boolean(initiatedBooking?.id) && !paymentLoading
+  const canConfirmPayment = Boolean(initiatedBooking?.id) && !paymentLoading && !isExpired
 
   return (
     <aside className="glass-panel sticky top-6 rounded-[2rem] p-6">
@@ -81,11 +91,27 @@ function BookingPanel({
       </div>
 
       {initiatedBooking ? (
-        <div className="mt-5 rounded-[1.75rem] border border-sky-100 bg-sky-50 p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Booking initiated</p>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Complete payment within 5 minutes to confirm this booking.
-          </p>
+        <div
+          className={`mt-5 rounded-[1.75rem] border p-5 ${
+            isExpired ? 'border-red-200 bg-red-50' : 'border-sky-100 bg-sky-50'
+          }`}
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className={`text-xs font-bold uppercase tracking-[0.22em] ${isExpired ? 'text-red-700' : 'text-sky-700'}`}>
+                {isExpired ? 'Booking expired' : 'Booking initiated'}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {isExpired
+                  ? 'This reservation window has ended. Reserve seats again to continue.'
+                  : 'Complete payment before the timer ends to confirm this booking.'}
+              </p>
+            </div>
+            <div className={`rounded-2xl px-4 py-3 text-right ${isExpired ? 'bg-red-100 text-red-700' : 'bg-white text-slate-950'}`}>
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-slate-400">Timer</p>
+              <p className="mt-1 text-2xl font-black">{formatCountdown(remainingSeconds)}</p>
+            </div>
+          </div>
           <p className="mt-3 text-sm font-bold text-slate-950">Booking ID: {initiatedBooking.id}</p>
         </div>
       ) : null}
@@ -113,7 +139,11 @@ function BookingPanel({
             disabled={!canConfirmPayment}
             className="gradient-button px-5 py-4 text-sm font-black"
           >
-            {paymentLoading ? 'Confirming payment...' : `Pay ${formatCurrency(displayTotal)}`}
+            {isExpired
+              ? 'Reservation expired'
+              : paymentLoading
+                ? 'Confirming payment...'
+                : `Pay ${formatCurrency(displayTotal)}`}
           </button>
         )}
 

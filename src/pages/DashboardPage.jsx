@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BookingPanel from '../components/BookingPanel'
 import BookingSummaryCard from '../components/BookingSummaryCard'
@@ -8,6 +8,8 @@ import useAuthStore from '../contexts/authStore'
 import { createBooking, makePayment } from '../services/bookingService'
 import { fetchFlights } from '../services/authService'
 import { getUserIdFromToken } from '../utils/authToken'
+
+const BOOKING_EXPIRY_SECONDS = 5 * 60
 
 function DashboardPage() {
   const navigate = useNavigate()
@@ -24,6 +26,13 @@ function DashboardPage() {
   const [bookingError, setBookingError] = useState('')
   const [bookingLoading, setBookingLoading] = useState(false)
   const [paymentLoading, setPaymentLoading] = useState(false)
+  const [bookingExpiresAt, setBookingExpiresAt] = useState(null)
+  const [remainingSeconds, setRemainingSeconds] = useState(BOOKING_EXPIRY_SECONDS)
+
+  const bookingExpired = Boolean(activeBooking && bookingExpiresAt && remainingSeconds <= 0)
+  const visibleBookingError = bookingExpired
+    ? 'This booking reservation expired. Reserve seats again to continue.'
+    : bookingError
 
   const stats = useMemo(
     () => [
@@ -33,6 +42,36 @@ function DashboardPage() {
     ],
     [flights.length, user],
   )
+
+  useEffect(() => {
+    if (!activeBooking || !bookingExpiresAt) {
+      return undefined
+    }
+
+    const updateRemainingSeconds = () => {
+      setRemainingSeconds(Math.max(Math.ceil((bookingExpiresAt - Date.now()) / 1000), 0))
+    }
+
+    updateRemainingSeconds()
+    const intervalId = window.setInterval(updateRemainingSeconds, 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [activeBooking, bookingExpiresAt])
+
+  useEffect(() => {
+    if (!activeBooking || bookingExpired) {
+      return undefined
+    }
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [activeBooking, bookingExpired])
 
   const handleFetchFlights = async () => {
     setLoading(true)
@@ -52,6 +91,8 @@ function DashboardPage() {
     setSelectedFlight(flight)
     setSeatCount(1)
     setActiveBooking(null)
+    setBookingExpiresAt(null)
+    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
     setBookingError('')
   }
 
@@ -88,6 +129,7 @@ function DashboardPage() {
       })
 
       setActiveBooking(booking)
+      setBookingExpiresAt(new Date(booking.createdAt || Date.now()).getTime() + BOOKING_EXPIRY_SECONDS * 1000)
     } catch (err) {
       setBookingError(err.message || 'Could not create booking')
     } finally {
@@ -100,6 +142,11 @@ function DashboardPage() {
 
     if (!activeBooking?.id) {
       setBookingError('Create a booking before confirming payment.')
+      return
+    }
+
+    if (bookingExpired) {
+      setBookingError('This booking reservation expired. Reserve seats again to continue.')
       return
     }
 
@@ -123,6 +170,8 @@ function DashboardPage() {
       setConfirmedBooking(confirmed)
       setActiveBooking(null)
       setSelectedFlight(null)
+      setBookingExpiresAt(null)
+      setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
       setSeatCount(1)
     } catch (err) {
       setBookingError(err.message || 'Could not confirm payment')
@@ -134,6 +183,8 @@ function DashboardPage() {
   const handleCloseBookingPanel = () => {
     setSelectedFlight(null)
     setActiveBooking(null)
+    setBookingExpiresAt(null)
+    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
     setBookingError('')
     setSeatCount(1)
   }
@@ -271,9 +322,11 @@ function DashboardPage() {
                 flight={selectedFlight}
                 seats={seatCount}
                 initiatedBooking={activeBooking}
+                remainingSeconds={remainingSeconds}
+                isExpired={bookingExpired}
                 loading={bookingLoading}
                 paymentLoading={paymentLoading}
-                error={bookingError}
+                error={visibleBookingError}
                 onSeatsChange={handleSeatChange}
                 onCreateBooking={handleCreateBooking}
                 onConfirmPayment={handleConfirmPayment}
