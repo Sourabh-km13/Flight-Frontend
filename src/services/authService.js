@@ -7,6 +7,13 @@ const authApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+const ALL_FLIGHTS_CACHE_TTL_MS = 60 * 1000
+let allFlightsCache = {
+  data: null,
+  fetchedAt: 0,
+  token: '',
+}
+
 function normalizeMessage(value) {
   if (Array.isArray(value)) {
     return value.filter(Boolean).join(', ')
@@ -39,6 +46,32 @@ function getApiData(response) {
   return response.data?.data ?? response.data?.successResponse?.data ?? response.data
 }
 
+function updateFlightSeatsInList(flights, flightId, seatsDelta) {
+  return flights.map((flight) =>
+    flight.id === flightId ? { ...flight, totalSeats: Math.max(Number(flight.totalSeats ?? 0) + seatsDelta, 0) } : flight,
+  )
+}
+
+function updateFlightSeatsInResponse(response, flightId, seatsDelta) {
+  if (Array.isArray(response)) {
+    return updateFlightSeatsInList(response, flightId, seatsDelta)
+  }
+
+  if (Array.isArray(response?.flights)) {
+    return { ...response, flights: updateFlightSeatsInList(response.flights, flightId, seatsDelta) }
+  }
+
+  if (Array.isArray(response?.rows)) {
+    return { ...response, rows: updateFlightSeatsInList(response.rows, flightId, seatsDelta) }
+  }
+
+  if (Array.isArray(response?.data)) {
+    return { ...response, data: updateFlightSeatsInList(response.data, flightId, seatsDelta) }
+  }
+
+  return response
+}
+
 export async function loginUser(payload) {
   try {
     const response = await authApi.post('/api/v1/user/signin', payload)
@@ -68,6 +101,43 @@ export async function fetchFlights(token, params = {}) {
     return getApiData(response)
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Unable to fetch flights'), { cause: error })
+  }
+}
+
+export async function fetchAllFlights(token, { forceRefresh = false } = {}) {
+  const cacheIsFresh = Date.now() - allFlightsCache.fetchedAt < ALL_FLIGHTS_CACHE_TTL_MS
+  const cacheMatchesSession = allFlightsCache.token === token
+
+  if (!forceRefresh && cacheMatchesSession && cacheIsFresh && allFlightsCache.data) {
+    return allFlightsCache.data
+  }
+
+  const data = await fetchFlights(token)
+  allFlightsCache = {
+    data,
+    fetchedAt: Date.now(),
+    token,
+  }
+
+  return data
+}
+
+export function updateCachedAllFlightSeats(flightId, seatsDelta) {
+  if (!allFlightsCache.data) {
+    return
+  }
+
+  allFlightsCache = {
+    ...allFlightsCache,
+    data: updateFlightSeatsInResponse(allFlightsCache.data, flightId, seatsDelta),
+  }
+}
+
+export function clearAllFlightsCache() {
+  allFlightsCache = {
+    data: null,
+    fetchedAt: 0,
+    token: '',
   }
 }
 

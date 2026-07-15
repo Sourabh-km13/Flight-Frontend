@@ -7,7 +7,13 @@ import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { createBooking, makePayment } from '../services/bookingService'
-import { fetchAirports, fetchCities, fetchFlights } from '../services/authService'
+import {
+  fetchAirports,
+  fetchAllFlights,
+  fetchCities,
+  fetchFlights,
+  updateCachedAllFlightSeats,
+} from '../services/authService'
 import { getUserIdFromToken } from '../utils/authToken'
 
 const BOOKING_EXPIRY_SECONDS = 5 * 60
@@ -209,6 +215,7 @@ function BookTicketPage() {
         ? { ...prev, totalSeats: Math.max(Number(prev.totalSeats ?? 0) + seatsDelta, 0) }
         : prev,
     )
+    updateCachedAllFlightSeats(flightId, seatsDelta)
   }
 
   const fetchFlightResults = async (params = {}) => {
@@ -246,7 +253,18 @@ function BookTicketPage() {
 
   const handleFetchAllFlights = async () => {
     setSearch({ from: '', to: '', tripDate: '', fromOption: null, toOption: null })
-    await fetchFlightResults()
+    setLoading(true)
+    setError('')
+    resetBookingState()
+
+    try {
+      const response = await fetchAllFlights(token)
+      setFlights(normalizeFlights(response))
+    } catch (err) {
+      setError(err.message || 'Could not fetch flights')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSelectFlight = (flight) => {
