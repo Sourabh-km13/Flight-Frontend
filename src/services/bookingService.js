@@ -73,3 +73,18 @@ export async function makePayment({ token, bookingId, userId, totalCost }) {
     throw new Error(getErrorMessage(error, 'Unable to confirm payment'), { cause: error })
   }
 }
+
+export async function fetchUserBookings({ token, userId, status }) {
+  try {
+    const response = await bookingApi.get(`/bookingservice/api/v1/booking/user/${userId}`, {
+      params: status ? { status } : {},
+      headers: {
+        'x-access-token': token,
+      },
+    })
+
+    return getResponseData(response)
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Unable to fetch bookings'), { cause: error })
+  }
+}
