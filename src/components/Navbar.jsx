@@ -1,31 +1,46 @@
 import { Link } from 'react-router-dom'
+import useAuthStore from '../contexts/authStore'
 
 function Navbar() {
+  const token = useAuthStore((state) => state.token)
+
   return (
-    <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
-      <Link to="/" className="text-lg font-semibold tracking-[0.28em] text-white">
-        FlySmart
+    <nav className="relative z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+      <Link to="/" className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-lg text-white shadow-xl shadow-sky-900/20">
+          FS
+        </span>
+        <span>
+          <span className="block text-lg font-black tracking-tight text-slate-950">FlySmart</span>
+          <span className="block text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Travel desk</span>
+        </span>
       </Link>
-      <div className="hidden items-center gap-6 md:flex">
-        <Link to="/" className="text-sm font-medium text-slate-300 transition hover:text-white">
+      <div className="hidden items-center gap-7 md:flex">
+        <Link to="/" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
           Home
         </Link>
-        <Link to="/login" className="text-sm font-medium text-slate-300 transition hover:text-white">
-          Sign in
-        </Link>
+        {token ? (
+          <Link to="/dashboard" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+            Dashboard
+          </Link>
+        ) : (
+          <Link to="/login" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+            Sign in
+          </Link>
+        )}
         <Link
-          to="/signup"
-          className="rounded-full border border-slate-700 bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-950 shadow-sm shadow-slate-950/10 transition hover:bg-slate-200"
+          to={token ? '/dashboard' : '/signup'}
+          className="rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
         >
-          Create account
+          {token ? 'Open dashboard' : 'Create account'}
         </Link>
       </div>
       <div className="flex items-center gap-3 md:hidden">
         <Link
-          to="/signup"
-          className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-950"
+          to={token ? '/dashboard' : '/signup'}
+          className="rounded-full bg-slate-950 px-4 py-2 text-sm font-bold text-white"
         >
-          Sign up
+          {token ? 'Dashboard' : 'Sign up'}
         </Link>
       </div>
     </nav>

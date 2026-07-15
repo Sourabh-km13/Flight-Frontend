@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:3001'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
 
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -9,20 +9,19 @@ const authApi = axios.create({
 
 export async function loginUser(payload) {
   try {
-    const response = await authApi.post('api/v1/user/signin', payload)
-    console.log(response.data);
+    const response = await authApi.post('/api/v1/user/signin', payload)
     return response.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Login failed')
+    throw new Error(error.response?.data?.message || 'Login failed', { cause: error })
   }
 }
 
 export async function signupUser(payload) {
   try {
-    const response = await authApi.post('api/v1/user/signup', payload)
+    const response = await authApi.post('/api/v1/user/signup', payload)
     return response.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Signup failed')
+    throw new Error(error.response?.data?.message || 'Signup failed', { cause: error })
   }
 }
 
@@ -30,13 +29,11 @@ export async function fetchFlights(token) {
   try {
     const response = await authApi.get('/flightservice/api/v1/flight', {
       headers: {
-        'Content-Type': 'application/json',
         'x-access-token': token,
       },
     })
-    console.log('Flight service response:', response.data)
     return response.data.data
   } catch (error) {
-    throw new Error(error.response?.data?.message || 'Unable to fetch flights')
+    throw new Error(error.response?.data?.message || 'Unable to fetch flights', { cause: error })
   }
 }

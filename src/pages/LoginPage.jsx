@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AuthCard from '../components/AuthCard'
 import InputField from '../components/InputField'
 import PrimaryButton from '../components/PrimaryButton'
@@ -8,10 +8,12 @@ import { loginUser } from '../services/authService'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const setAuth = useAuthStore((state) => state.setAuth)
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const redirectTo = location.state?.from?.pathname || '/dashboard'
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -26,10 +28,13 @@ function LoginPage() {
     try {
       const response = await loginUser({ email: form.email, password: form.password })
       const token = response.token || response.accessToken || response.jwt || response.data
+      if (!token || typeof token !== 'string') {
+        throw new Error('Login succeeded but no auth token was returned')
+      }
+
       const user = response.user || { email: form.email }
-      localStorage.setItem('token', token)
       setAuth(user, token)
-      navigate('/dashboard')
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       setError(err.message || 'Unable to sign in')
     } finally {

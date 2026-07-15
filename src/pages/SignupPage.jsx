@@ -26,8 +26,11 @@ function SignupPage() {
     try {
       const response = await signupUser({ name: form.name, email: form.email, password: form.password })
       const token = response.token || response.accessToken || response.jwt || response.data
+      if (!token || typeof token !== 'string') {
+        throw new Error('Signup succeeded but no auth token was returned')
+      }
+
       const user = response.user || { name: form.name, email: form.email }
-      localStorage.setItem('token', token)
       setAuth(user, token)
       navigate('/dashboard')
     } catch (err) {
