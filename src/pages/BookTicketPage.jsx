@@ -6,74 +6,13 @@ import CitySearchInput from '../components/CitySearchInput'
 import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
+import { useLocationOptions } from '../hooks/useLocationOptions'
 import { createBooking, makePayment } from '../services/bookingService'
-import {
-  fetchAirports,
-  fetchAllFlights,
-  fetchCities,
-  fetchFlights,
-  updateCachedAllFlightSeats,
-} from '../services/authService'
+import { fetchAllFlights, fetchFlights, updateCachedAllFlightSeats } from '../services/authService'
 import { getUserIdFromToken } from '../utils/authToken'
+import { normalizeFlights, updateFlightSeatsInList } from '../utils/flightData'
 
 const BOOKING_EXPIRY_SECONDS = 5 * 60
-
-function normalizeFlights(response) {
-  if (Array.isArray(response)) {
-    return response
-  }
-
-  if (Array.isArray(response?.flights)) {
-    return response.flights
-  }
-
-  if (Array.isArray(response?.rows)) {
-    return response.rows
-  }
-
-  if (Array.isArray(response?.data)) {
-    return response.data
-  }
-
-  return []
-}
-
-function normalizeList(response) {
-  if (Array.isArray(response)) {
-    return response
-  }
-
-  if (Array.isArray(response?.rows)) {
-    return response.rows
-  }
-
-  if (Array.isArray(response?.data)) {
-    return response.data
-  }
-
-  return []
-}
-
-function buildLocationOptions(citiesResponse, airportsResponse) {
-  const cities = normalizeList(citiesResponse)
-  const airports = normalizeList(airportsResponse)
-  const cityById = new Map(cities.map((city) => [String(city.id), city.name]))
-
-  return airports
-    .filter((airport) => airport?.code)
-    .map((airport) => {
-      const code = String(airport.code).toUpperCase()
-      const cityName = cityById.get(String(airport.cityId)) || airport.cityName || airport.city?.name || airport.name || code
-
-      return {
-        label: `${cityName} (${code})`,
-        cityName,
-        airportName: airport.name || '',
-        code,
-      }
-    })
-    .sort((first, second) => first.label.localeCompare(second.label))
-}
 
 function BookTicketPage() {
   const navigate = useNavigate()
@@ -87,9 +26,7 @@ function BookTicketPage() {
     fromOption: null,
     toOption: null,
   })
-  const [locationOptions, setLocationOptions] = useState([])
-  const [locationsLoading, setLocationsLoading] = useState(false)
-  const [locationsError, setLocationsError] = useState('')
+  const { locationOptions, locationsLoading, locationsError } = useLocationOptions(token)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [selectedFlight, setSelectedFlight] = useState(null)
@@ -106,37 +43,6 @@ function BookTicketPage() {
   const visibleBookingError = bookingExpired
     ? 'This booking reservation expired. Reserve seats again to continue.'
     : bookingError
-
-  useEffect(() => {
-    let shouldUpdate = true
-
-    const loadLocationOptions = async () => {
-      setLocationsLoading(true)
-      setLocationsError('')
-
-      try {
-        const [citiesResponse, airportsResponse] = await Promise.all([fetchCities(token), fetchAirports(token)])
-
-        if (shouldUpdate) {
-          setLocationOptions(buildLocationOptions(citiesResponse, airportsResponse))
-        }
-      } catch (err) {
-        if (shouldUpdate) {
-          setLocationsError(err.message || 'Could not load city list')
-        }
-      } finally {
-        if (shouldUpdate) {
-          setLocationsLoading(false)
-        }
-      }
-    }
-
-    loadLocationOptions()
-
-    return () => {
-      shouldUpdate = false
-    }
-  }, [token])
 
   useEffect(() => {
     if (!activeBooking || !bookingExpiresAt) {
@@ -203,13 +109,7 @@ function BookTicketPage() {
   }
 
   const updateFlightSeats = (flightId, seatsDelta) => {
-    setFlights((prev) =>
-      prev.map((flight) =>
-        flight.id === flightId
-          ? { ...flight, totalSeats: Math.max(Number(flight.totalSeats ?? 0) + seatsDelta, 0) }
-          : flight,
-      ),
-    )
+    setFlights((prev) => updateFlightSeatsInList(prev, flightId, seatsDelta))
     setSelectedFlight((prev) =>
       prev?.id === flightId
         ? { ...prev, totalSeats: Math.max(Number(prev.totalSeats ?? 0) + seatsDelta, 0) }
