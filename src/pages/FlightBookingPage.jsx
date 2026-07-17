@@ -18,7 +18,6 @@ function FlightBookingPage() {
   const { flightId } = useParams()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const stateFlight = location.state?.flight
   const initialFlight =
@@ -200,19 +199,14 @@ function FlightBookingPage() {
     navigate('/bookticket')
   }
 
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
-  }
-
   return (
     <div className="app-shell relative">
       <Navbar />
       <Toast message={toastMessage} onClose={() => setToastMessage('')} />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_32%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.18),_transparent_40%)]" />
       <main className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
-        <section className="glass-panel overflow-hidden rounded-[2.5rem] p-7 sm:p-9">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        <section className="glass-panel overflow-hidden rounded-[2.5rem] border border-orange-100/70 p-7 sm:p-9">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="eyebrow">Flight details</p>
               <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
@@ -222,21 +216,13 @@ function FlightBookingPage() {
                 Confirm the itinerary, reserve seats, and complete payment within 5 minutes.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                to="/bookticket"
-                className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300"
-              >
-                Back to search
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300"
-              >
-                Logout
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleBackToSearch}
+              className="rounded-full border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-orange-800 transition hover:bg-orange-100"
+            >
+              Back to search
+            </button>
           </div>
         </section>
 
@@ -253,10 +239,14 @@ function FlightBookingPage() {
 
         {flightError ? (
           <section className="soft-card rounded-[2rem] p-8">
-            <p className="text-sm font-semibold text-red-600">{flightError}</p>
-            <Link to="/bookticket" className="mt-5 inline-flex gradient-button px-5 py-3 text-sm font-black">
+            <p className="text-sm font-semibold text-rose-600">{flightError}</p>
+            <button
+              type="button"
+              onClick={handleBackToSearch}
+              className="mt-5 inline-flex rounded-full border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-orange-800"
+            >
               Back to search
-            </Link>
+            </button>
           </section>
         ) : null}
 
@@ -264,15 +254,18 @@ function FlightBookingPage() {
           <section className="space-y-6">
             <BookingSummaryCard booking={confirmedBooking} onDismiss={() => setConfirmedBooking(null)} />
             <div className="flex flex-wrap gap-3">
-              <Link to={`/bookings/${confirmedBooking.id}`} className="gradient-button px-5 py-3 text-sm font-black">
+              <Link to={`/bookings/${confirmedBooking.id}`} className="btn-pay w-auto px-5 py-3 text-sm font-black">
                 View receipt
               </Link>
-              <Link to="/bookings" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">
+              <Link
+                to="/bookings"
+                className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-800"
+              >
                 All booked tickets
               </Link>
               <Link
                 to="/bookticket"
-                className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700"
+                className="rounded-full border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-orange-800"
               >
                 Search more flights
               </Link>
@@ -292,11 +285,10 @@ function FlightBookingPage() {
               loading={bookingLoading}
               paymentLoading={paymentLoading}
               error={visibleBookingError}
-              closeLabel="Back to search"
+              showClose={false}
               onSeatsChange={handleSeatChange}
               onCreateBooking={handleCreateBooking}
               onConfirmPayment={handleConfirmPayment}
-              onClose={handleBackToSearch}
             />
           </section>
         ) : null}
