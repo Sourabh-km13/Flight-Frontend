@@ -8,8 +8,6 @@ A production-style React SPA for searching flights, holding seats, completing bo
 
 FlySmart demonstrates end-to-end product engineering: authenticated traveler flows, timed booking holds, admin RBAC, and clean separation between customer and admin APIs — all against a real multi-service backend rather than mocks.
 
-**Resume highlight:** Full-stack flight booking platform with JWT auth, role-based admin portal, and gateway-proxied microservices.
-
 ---
 
 ## Architecture
