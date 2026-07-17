@@ -19,7 +19,8 @@ function BookingSummaryCard({ booking, onDismiss }) {
           <h3 className="mt-4 text-3xl font-black tracking-tight text-slate-950">
             Flight booked
           </h3>
-          <p className="mt-2 text-sm text-slate-500">Booking #{booking.id}</p>
+          <p className="mt-2 text-lg font-black text-slate-950">Booking #{booking.id}</p>
+          <p className="mt-1 text-sm text-slate-500">Keep this ID for your records.</p>
         </div>
         <button
           type="button"

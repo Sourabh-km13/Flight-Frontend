@@ -6,6 +6,7 @@ import AdminLoginPage from './pages/AdminLoginPage'
 import BookTicketPage from './pages/BookTicketPage'
 import BookingsPage from './pages/BookingsPage'
 import DashboardPage from './pages/DashboardPage'
+import FlightBookingPage from './pages/FlightBookingPage'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 
@@ -53,6 +54,14 @@ function App() {
           element={
             <ProtectedRoute>
               <BookTicketPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookticket/:flightId"
+          element={
+            <ProtectedRoute>
+              <FlightBookingPage />
             </ProtectedRoute>
           }
         />

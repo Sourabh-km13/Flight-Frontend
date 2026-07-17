@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import BookingPanel from '../components/BookingPanel'
-import BookingSummaryCard from '../components/BookingSummaryCard'
 import CitySearchInput from '../components/CitySearchInput'
 import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { useLocationOptions } from '../hooks/useLocationOptions'
-import { createBooking, makePayment } from '../services/bookingService'
-import { fetchAllFlights, fetchFlights, updateCachedAllFlightSeats } from '../services/authService'
-import { getUserIdFromToken } from '../utils/authToken'
-import { normalizeFlights, updateFlightSeatsInList } from '../utils/flightData'
-
-const BOOKING_EXPIRY_SECONDS = 5 * 60
+import { fetchAllFlights, fetchFlights } from '../services/authService'
+import { normalizeFlights } from '../utils/flightData'
 
 function BookTicketPage() {
   const navigate = useNavigate()
@@ -29,50 +23,6 @@ function BookTicketPage() {
   const { locationOptions, locationsLoading, locationsError } = useLocationOptions(token)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [selectedFlight, setSelectedFlight] = useState(null)
-  const [seatCount, setSeatCount] = useState(1)
-  const [activeBooking, setActiveBooking] = useState(null)
-  const [confirmedBooking, setConfirmedBooking] = useState(null)
-  const [bookingError, setBookingError] = useState('')
-  const [bookingLoading, setBookingLoading] = useState(false)
-  const [paymentLoading, setPaymentLoading] = useState(false)
-  const [bookingExpiresAt, setBookingExpiresAt] = useState(null)
-  const [remainingSeconds, setRemainingSeconds] = useState(BOOKING_EXPIRY_SECONDS)
-
-  const bookingExpired = Boolean(activeBooking && bookingExpiresAt && remainingSeconds <= 0)
-  const visibleBookingError = bookingExpired
-    ? 'This booking reservation expired. Reserve seats again to continue.'
-    : bookingError
-
-  useEffect(() => {
-    if (!activeBooking || !bookingExpiresAt) {
-      return undefined
-    }
-
-    const updateRemainingSeconds = () => {
-      setRemainingSeconds(Math.max(Math.ceil((bookingExpiresAt - Date.now()) / 1000), 0))
-    }
-
-    updateRemainingSeconds()
-    const intervalId = window.setInterval(updateRemainingSeconds, 1000)
-
-    return () => window.clearInterval(intervalId)
-  }, [activeBooking, bookingExpiresAt])
-
-  useEffect(() => {
-    if (!activeBooking || bookingExpired) {
-      return undefined
-    }
-
-    const handleBeforeUnload = (event) => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [activeBooking, bookingExpired])
 
   const handleLocationInputChange = (field, value) => {
     setSearch((prev) => ({ ...prev, [field]: value, [`${field}Option`]: null }))
@@ -100,28 +50,9 @@ function BookTicketPage() {
     return params
   }
 
-  const resetBookingState = () => {
-    setSelectedFlight(null)
-    setActiveBooking(null)
-    setBookingExpiresAt(null)
-    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
-    setBookingError('')
-  }
-
-  const updateFlightSeats = (flightId, seatsDelta) => {
-    setFlights((prev) => updateFlightSeatsInList(prev, flightId, seatsDelta))
-    setSelectedFlight((prev) =>
-      prev?.id === flightId
-        ? { ...prev, totalSeats: Math.max(Number(prev.totalSeats ?? 0) + seatsDelta, 0) }
-        : prev,
-    )
-    updateCachedAllFlightSeats(flightId, seatsDelta)
-  }
-
   const fetchFlightResults = async (params = {}) => {
     setLoading(true)
     setError('')
-    resetBookingState()
 
     try {
       const response = await fetchFlights(token, params)
@@ -155,7 +86,6 @@ function BookTicketPage() {
     setSearch({ from: '', to: '', tripDate: '', fromOption: null, toOption: null })
     setLoading(true)
     setError('')
-    resetBookingState()
 
     try {
       const response = await fetchAllFlights(token)
@@ -168,104 +98,12 @@ function BookTicketPage() {
   }
 
   const handleSelectFlight = (flight) => {
-    setSelectedFlight(flight)
-    setSeatCount(1)
-    setActiveBooking(null)
-    setBookingExpiresAt(null)
-    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
-    setBookingError('')
-  }
-
-  const handleSeatChange = (value) => {
-    const nextValue = Number.isFinite(value) ? value : 1
-
-    setSeatCount(Math.max(nextValue, 1))
-  }
-
-  const handleCreateBooking = async () => {
-    const userId = getUserIdFromToken(token)
-
-    if (!selectedFlight?.id) {
-      setBookingError('This flight cannot be booked because it is missing a flight id.')
+    if (!flight?.id) {
+      setError('This flight cannot be booked because it is missing a flight id.')
       return
     }
 
-    if (!userId) {
-      setBookingError('Could not identify the signed-in user from the current session.')
-      return
-    }
-
-    setBookingLoading(true)
-    setBookingError('')
-
-    try {
-      const booking = await createBooking({
-        token,
-        flightId: selectedFlight.id,
-        userId,
-        noOfSeats: seatCount,
-      })
-
-      setActiveBooking(booking)
-      setBookingExpiresAt(new Date(booking.createdAt || Date.now()).getTime() + BOOKING_EXPIRY_SECONDS * 1000)
-      updateFlightSeats(selectedFlight.id, -seatCount)
-    } catch (err) {
-      setBookingError(err.message || 'Could not create booking')
-    } finally {
-      setBookingLoading(false)
-    }
-  }
-
-  const handleConfirmPayment = async () => {
-    const userId = getUserIdFromToken(token)
-
-    if (!activeBooking?.id) {
-      setBookingError('Create a booking before confirming payment.')
-      return
-    }
-
-    if (bookingExpired) {
-      setBookingError('This booking reservation expired. Reserve seats again to continue.')
-      return
-    }
-
-    if (!userId) {
-      setBookingError('Could not identify the signed-in user from the current session.')
-      return
-    }
-
-    setPaymentLoading(true)
-    setBookingError('')
-
-    try {
-      const payment = await makePayment({
-        token,
-        bookingId: activeBooking.id,
-        userId,
-        totalCost: activeBooking.totalCost,
-      })
-      const confirmed = Array.isArray(payment) ? { ...activeBooking, status: 'booked' } : payment
-
-      setConfirmedBooking(confirmed)
-      setActiveBooking(null)
-      setSelectedFlight(null)
-      setBookingExpiresAt(null)
-      setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
-      setSeatCount(1)
-    } catch (err) {
-      setBookingError(err.message || 'Could not confirm payment')
-    } finally {
-      setPaymentLoading(false)
-    }
-  }
-
-  const handleCloseBookingPanel = () => {
-    setSelectedFlight(null)
-    setActiveBooking(null)
-    setBookingExpiresAt(null)
-    setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
-    setBookingError('')
-    setSeatCount(1)
+    navigate(`/bookticket/${flight.id}`, { state: { flight } })
   }
 
   const handleLogout = () => {
@@ -370,12 +208,6 @@ function BookTicketPage() {
             </div>
           ) : null}
 
-          {confirmedBooking ? (
-            <div className="mt-8">
-              <BookingSummaryCard booking={confirmedBooking} onDismiss={() => setConfirmedBooking(null)} />
-            </div>
-          ) : null}
-
           <div className="mt-8 grid gap-6 xl:grid-cols-2">
             {loading ? (
               [0, 1].map((item) => (
@@ -397,33 +229,13 @@ function BookTicketPage() {
               </div>
             ) : (
               flights.map((flight, index) => (
-                <div key={flight.id || `${flight.flightNumber || 'flight'}-${index}`} className="contents">
-                  <FlightCard
-                    flight={flight}
-                    onBook={handleSelectFlight}
-                    bookingDisabled={!flight.id || bookingLoading || paymentLoading}
-                    bookingLabel={selectedFlight?.id === flight.id ? 'Selected' : 'Book now'}
-                    isSelected={selectedFlight?.id === flight.id}
-                  />
-                  {selectedFlight?.id === flight.id ? (
-                    <div className="xl:col-span-2">
-                      <BookingPanel
-                        flight={selectedFlight}
-                        seats={seatCount}
-                        initiatedBooking={activeBooking}
-                        remainingSeconds={remainingSeconds}
-                        isExpired={bookingExpired}
-                        loading={bookingLoading}
-                        paymentLoading={paymentLoading}
-                        error={visibleBookingError}
-                        onSeatsChange={handleSeatChange}
-                        onCreateBooking={handleCreateBooking}
-                        onConfirmPayment={handleConfirmPayment}
-                        onClose={handleCloseBookingPanel}
-                      />
-                    </div>
-                  ) : null}
-                </div>
+                <FlightCard
+                  key={flight.id || `${flight.flightNumber || 'flight'}-${index}`}
+                  flight={flight}
+                  onBook={handleSelectFlight}
+                  bookingDisabled={!flight.id || loading}
+                  bookingLabel="Book now"
+                />
               ))
             )}
           </div>
