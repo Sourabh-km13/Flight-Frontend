@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import LogoutButton from '../components/LogoutButton'
+
 import Navbar from '../components/Navbar'
 import { AirplaneIcon, AirportIcon, GateIcon, MoneyIcon, SeatIcon } from '../components/TravelIcons'
 import useAuthStore from '../contexts/authStore'
@@ -142,7 +142,7 @@ function BookingReceiptPage() {
               >
                 Download / Print
               </button>
-              <LogoutButton className="px-5 py-3 text-sm" />
+
             </div>
           </div>
         </section>

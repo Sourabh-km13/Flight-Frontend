@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CitySearchInput from '../components/CitySearchInput'
 import FlightCard from '../components/FlightCard'
-import LogoutButton from '../components/LogoutButton'
+
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { useLocationOptions } from '../hooks/useLocationOptions'
@@ -158,7 +158,6 @@ function BookTicketPage() {
                 >
                   Dashboard
                 </Link>
-                <LogoutButton className="px-5 py-3 text-sm" />
               </div>
             </div>
 

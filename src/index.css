@@ -168,7 +168,7 @@ select {
   background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
 }
 
-.toast-shine {
+/* .toast-shine {
   position: relative;
   overflow: hidden;
   border: 2px solid #f43f5e;
@@ -190,7 +190,7 @@ select {
   );
   transform: translateX(-120%);
   animation: toast-shine-sweep 2.2s ease-in-out infinite;
-}
+} */
 
 @keyframes toast-shine-sweep {
   0% {

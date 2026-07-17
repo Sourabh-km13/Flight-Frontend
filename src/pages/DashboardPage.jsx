@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
-
+import LogoutButton from '../components/LogoutButton'
 function DashboardPage() {
   const user = useAuthStore((state) => state.user)
 
@@ -18,14 +18,17 @@ function DashboardPage() {
   return (
     <div className="app-shell relative">
       <Navbar />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_32%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.16),transparent_32%)]" />
       <main className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
         <section className="glass-panel overflow-hidden rounded-[2.5rem] p-7 sm:p-9">
-          <div className="max-w-2xl">
-            <p className="eyebrow">Dashboard</p>
-            <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Welcome back</h1>
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="max-w-2xl">
+              <p className="eyebrow">Dashboard</p>
+              <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Welcome back</h1>
+            </div>
+            <LogoutButton className="px-5 py-3 text-sm" />
           </div>
-
+        
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {stats.map((stat) => (
               <div key={stat.label} className="soft-card rounded-[1.75rem] p-5">

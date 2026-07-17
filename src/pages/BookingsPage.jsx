@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import LogoutButton from '../components/LogoutButton'
+
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { fetchUserBookings } from '../services/bookingService'
@@ -173,7 +173,6 @@ function BookingsPage() {
               >
                 Search flights
               </Link>
-              <LogoutButton className="px-6 py-3 text-sm" />
             </div>
           </div>
 
