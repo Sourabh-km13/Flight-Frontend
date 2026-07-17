@@ -1,16 +1,160 @@
-# React + Vite
+# FlySmart — Flight Booking Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A production-style React SPA for searching flights, holding seats, completing bookings, and managing flight catalog data as an admin. Built as the client for a **microservices** backend (API Gateway + Flight Service + Booking Service).
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Why this project
 
-## React Compiler
+FlySmart demonstrates end-to-end product engineering: authenticated traveler flows, timed booking holds, admin RBAC, and clean separation between customer and admin APIs — all against a real multi-service backend rather than mocks.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Resume highlight:** Full-stack flight booking platform with JWT auth, role-based admin portal, and gateway-proxied microservices.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Architecture
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  React + Vite SPA (this repo)                               │
+│  Customer UI  ·  Admin UI  ·  Zustand auth  ·  Axios clients │
+└────────────────────────────┬────────────────────────────────┘
+                             │  VITE_API_BASE_URL (default :3001)
+                             │  Header: x-access-token
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│  API Gateway                                                │
+│  Auth / RBAC / rate limit / reverse proxy                   │
+├──────────────┬──────────────────────┬───────────────────────┤
+│  /api/v1/*   │  /flightservice/*    │  /bookingservice/*    │
+│  /admin/*    │  /admin/flightservice│                       │
+└──────┬───────┴──────────┬───────────┴───────────┬───────────┘
+       │                  │                       │
+       ▼                  ▼                       ▼
+  Users & Roles      Flight catalog          Bookings,
+  (Gateway DB)       seats, inventory        payment hold,
+                     (Flight Service)        cron + RabbitMQ
+```
+
+| Audience | Entry | Backend surface |
+|----------|--------|-----------------|
+| Traveler | `/login`, `/signup` | `/api/v1/user/*`, `/flightservice/*`, `/bookingservice/*` |
+| Admin | `/admin/signin` | `/admin/signin`, `/admin/flightservice/*` (admin JWT required) |
+
+---
+
+## Capabilities
+
+### Traveler
+- Email/password signup and sign-in with JWT persistence
+- Dashboard entry for booking and ticket history
+- City/airport-aware location search and flight discovery
+- Seat hold with a **5-minute payment window** and live countdown
+- Booking creation + payment confirmation against the booking service
+- Booked tickets list with status filtering
+
+### Admin
+- Dedicated admin sign-in (`POST /admin/signin`) — no public admin signup
+- Role-gated `/admin` dashboard (`role === 'admin'` in JWT)
+- Full CRUD for **cities, airports, airplanes, and flights** via the admin proxy
+
+### Client engineering
+- Route guards for customer and admin sessions (expired JWT cleared)
+- In-memory **flight list cache** (60s TTL) with seat updates after booking actions
+- Shared API response helpers for consistent error messaging
+- Tailwind v4 UI with a cohesive traveler + admin experience
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| UI | React 19, React Router 7 |
+| Build | Vite 8 |
+| State | Zustand + persist |
+| HTTP | Axios |
+| Styling | Tailwind CSS v4 |
+| Auth model | JWT in `x-access-token` |
+
+---
+
+## Project structure
+
+```text
+src/
+  components/     # Auth shell, booking cards, route guards, inputs
+  contexts/       # Zustand auth store (user, token, role)
+  hooks/          # Location options (cities + airports)
+  pages/          # Dashboard, book ticket, bookings, admin
+  services/       # Customer APIs, booking APIs, admin APIs, flight cache
+  utils/          # JWT helpers, API response parsing, flight normalizers
+  App.jsx         # Route map
+```
+
+---
+
+## Getting started
+
+### Prerequisites
+- Node.js 18+
+- Running backend stack (Gateway + Flight Service + Booking Service)
+- Gateway reachable (default `http://localhost:3001`)
+
+### Install & run
+
+```bash
+npm install
+npm run dev
+```
+
+Optional env (`.env`):
+
+```bash
+VITE_API_BASE_URL=http://localhost:3001
+```
+
+| Script | Purpose |
+|--------|---------|
+| `npm run dev` | Local Vite server |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run lint` | ESLint |
+
+---
+
+## Key routes
+
+| Path | Access |
+|------|--------|
+| `/`, `/dashboard` | Authenticated traveler |
+| `/login`, `/signup` | Public |
+| `/bookticket` | Authenticated traveler |
+| `/bookings` | Authenticated traveler |
+| `/admin/signin` | Public (admin credentials) |
+| `/admin` | Admin JWT only |
+
+---
+
+## Design decisions
+
+1. **Gateway as the only public API** — the SPA never calls Flight or Booking services directly.
+2. **Separate admin client path** — mutations go through `/admin/flightservice`, matching backend RBAC.
+3. **JWT role claim for UI gating** — middleware still re-checks admin on every admin proxy request.
+4. **Client cache for search UX** — reduces repeat full-list fetches while bookings update seat counts locally.
+
+---
+
+## Related repositories
+
+| Service | Role |
+|---------|------|
+| [Api_Gateway_Flight](../Api_Gateway_Flight) | Auth, RBAC, rate limiting, reverse proxy |
+| [Flight-Service](../Flight-Service) | Airplanes, cities, airports, flights, seat inventory |
+| [Flight-booking-Service](../Flight-booking-Service) | Bookings, payment hold, cron expiry, notifications |
+
+---
+
+## License
+
+Private / educational project.
