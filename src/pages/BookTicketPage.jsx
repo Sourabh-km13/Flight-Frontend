@@ -17,6 +17,9 @@ function BookTicketPage() {
     from: '',
     to: '',
     tripDate: '',
+    minPrice: '',
+    maxPrice: '',
+    sort: '',
     fromOption: null,
     toOption: null,
   })
@@ -32,8 +35,9 @@ function BookTicketPage() {
     setSearch((prev) => ({ ...prev, [field]: option.label, [`${field}Option`]: option }))
   }
 
-  const handleTripDateChange = (event) => {
-    setSearch((prev) => ({ ...prev, tripDate: event.target.value }))
+  const handleSearchFieldChange = (event) => {
+    const { name, value } = event.target
+    setSearch((prev) => ({ ...prev, [name]: value }))
   }
 
   const getFlightSearchParams = () => {
@@ -45,6 +49,16 @@ function BookTicketPage() {
 
     if (search.tripDate) {
       params.tripDate = search.tripDate
+    }
+
+    const minPrice = search.minPrice.trim()
+    const maxPrice = search.maxPrice.trim()
+    if (minPrice || maxPrice) {
+      params.price = `${minPrice || 0}-${maxPrice || 999999}`
+    }
+
+    if (search.sort) {
+      params.sort = search.sort
     }
 
     return params
@@ -68,6 +82,8 @@ function BookTicketPage() {
     event?.preventDefault()
     const from = search.from.trim()
     const to = search.to.trim()
+    const minPrice = search.minPrice.trim()
+    const maxPrice = search.maxPrice.trim()
 
     if ((from && !to) || (!from && to)) {
       setError('Enter both From and To.')
@@ -79,11 +95,30 @@ function BookTicketPage() {
       return
     }
 
+    if ((minPrice && Number.isNaN(Number(minPrice))) || (maxPrice && Number.isNaN(Number(maxPrice)))) {
+      setError('Price filters must be numbers.')
+      return
+    }
+
+    if (minPrice && maxPrice && Number(minPrice) > Number(maxPrice)) {
+      setError('Min price cannot be greater than max price.')
+      return
+    }
+
     await fetchFlightResults(getFlightSearchParams())
   }
 
   const handleFetchAllFlights = async () => {
-    setSearch({ from: '', to: '', tripDate: '', fromOption: null, toOption: null })
+    setSearch({
+      from: '',
+      to: '',
+      tripDate: '',
+      minPrice: '',
+      maxPrice: '',
+      sort: '',
+      fromOption: null,
+      toOption: null,
+    })
     setLoading(true)
     setError('')
 
@@ -169,9 +204,60 @@ function BookTicketPage() {
                     name="tripDate"
                     type="date"
                     value={search.tripDate}
-                    onChange={handleTripDateChange}
+                    onChange={handleSearchFieldChange}
                     className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none focus:border-sky-300"
                   />
+                </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Min price</span>
+                    <input
+                      name="minPrice"
+                      type="number"
+                      min="0"
+                      value={search.minPrice}
+                      onChange={handleSearchFieldChange}
+                      placeholder="e.g. 2000"
+                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Max price</span>
+                    <input
+                      name="maxPrice"
+                      type="number"
+                      min="0"
+                      value={search.maxPrice}
+                      onChange={handleSearchFieldChange}
+                      placeholder="e.g. 8000"
+                      className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none placeholder:text-slate-500 focus:border-sky-300"
+                    />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Sort by</span>
+                  <select
+                    name="sort"
+                    value={search.sort}
+                    onChange={handleSearchFieldChange}
+                    className="mt-3 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-lg font-black text-white outline-none focus:border-sky-300"
+                  >
+                    <option value="" className="text-slate-950">
+                      Default
+                    </option>
+                    <option value="price-ASC" className="text-slate-950">
+                      Price: low to high
+                    </option>
+                    <option value="price-DESC" className="text-slate-950">
+                      Price: high to low
+                    </option>
+                    <option value="departureTime-ASC" className="text-slate-950">
+                      Departure: earliest
+                    </option>
+                    <option value="departureTime-DESC" className="text-slate-950">
+                      Departure: latest
+                    </option>
+                  </select>
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <button type="submit" disabled={loading} className="gradient-button px-5 py-4 text-sm font-black">

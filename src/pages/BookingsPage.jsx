@@ -88,6 +88,15 @@ function BookingJourneyCard({ booking }) {
           <p className="mt-2 text-lg font-black text-slate-950">#{booking.id}</p>
         </div>
       </div>
+
+      <div className="mt-5">
+        <Link
+          to={`/bookings/${booking.id}`}
+          className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+        >
+          View receipt
+        </Link>
+      </div>
     </article>
   )
 }

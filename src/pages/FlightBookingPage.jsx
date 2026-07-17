@@ -264,8 +264,11 @@ function FlightBookingPage() {
           <section className="space-y-6">
             <BookingSummaryCard booking={confirmedBooking} onDismiss={() => setConfirmedBooking(null)} />
             <div className="flex flex-wrap gap-3">
-              <Link to="/bookings" className="gradient-button px-5 py-3 text-sm font-black">
-                View booked tickets
+              <Link to={`/bookings/${confirmedBooking.id}`} className="gradient-button px-5 py-3 text-sm font-black">
+                View receipt
+              </Link>
+              <Link to="/bookings" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700">
+                All booked tickets
               </Link>
               <Link
                 to="/bookticket"

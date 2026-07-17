@@ -3,6 +3,7 @@ import AdminProtectedRoute from './components/AdminProtectedRoute'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminLoginPage from './pages/AdminLoginPage'
+import BookingReceiptPage from './pages/BookingReceiptPage'
 import BookTicketPage from './pages/BookTicketPage'
 import BookingsPage from './pages/BookingsPage'
 import DashboardPage from './pages/DashboardPage'
@@ -46,6 +47,14 @@ function App() {
           element={
             <ProtectedRoute>
               <BookingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bookings/:bookingId"
+          element={
+            <ProtectedRoute>
+              <BookingReceiptPage />
             </ProtectedRoute>
           }
         />

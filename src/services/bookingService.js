@@ -88,3 +88,17 @@ export async function fetchUserBookings({ token, userId, status }) {
     throw new Error(getErrorMessage(error, 'Unable to fetch bookings'), { cause: error })
   }
 }
+
+export async function fetchBookingById({ token, bookingId }) {
+  try {
+    const response = await bookingApi.get(`/bookingservice/api/v1/booking/${bookingId}`, {
+      headers: {
+        'x-access-token': token,
+      },
+    })
+
+    return getResponseData(response)
+  } catch (error) {
+    throw new Error(getErrorMessage(error, 'Unable to fetch booking receipt'), { cause: error })
+  }
+}
