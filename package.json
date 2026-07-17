@@ -1,7 +1,9 @@
 {
-  "name": "frontend",
+  "name": "flight-frontend",
   "private": true,
   "version": "0.0.0",
+  "description": "FlySmart traveler and admin React SPA",
+  "author": "sourabh",
   "type": "module",
   "scripts": {
     "dev": "vite",
