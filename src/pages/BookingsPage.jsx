@@ -181,7 +181,7 @@ function BookingsPage() {
               </Link>
               <button
                 onClick={handleLogout}
-                className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950"
+                className="btn-logout px-6 py-3 text-sm"
               >
                 Logout
               </button>

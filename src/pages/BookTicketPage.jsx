@@ -165,7 +165,7 @@ function BookTicketPage() {
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-black text-white transition hover:bg-white/15"
+                  className="btn-logout px-5 py-3 text-sm"
                 >
                   Logout
                 </button>
