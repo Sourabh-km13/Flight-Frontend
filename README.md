@@ -45,11 +45,11 @@ FlySmart demonstrates end-to-end product engineering: authenticated traveler flo
 
 ### Traveler
 - Email/password signup and sign-in with JWT persistence
-- Dashboard entry for booking and ticket history
-- City/airport-aware location search and flight discovery
+- Dashboard entry for search and ticket history
+- City/airport-aware location search with price/sort filters
 - Seat hold with a **5-minute payment window** and live countdown
 - Booking creation + payment confirmation against the booking service
-- Booked tickets list with status filtering
+- Booked tickets list and printable receipt with city/airport details
 
 ### Admin
 - Dedicated admin sign-in (`POST /admin/signin`) — no public admin signup
@@ -60,6 +60,7 @@ FlySmart demonstrates end-to-end product engineering: authenticated traveler flo
 - Route guards for customer and admin sessions (expired JWT cleared)
 - In-memory **flight list cache** (60s TTL) with seat updates after booking actions
 - Shared API response helpers for consistent error messaging
+- City/airport labels resolved from catalog data already loaded for search
 - Tailwind v4 UI with a cohesive traveler + admin experience
 
 ---
@@ -81,10 +82,10 @@ FlySmart demonstrates end-to-end product engineering: authenticated traveler flo
 
 ```text
 src/
-  components/     # Auth shell, booking cards, route guards, inputs
+  components/     # Auth shell, booking cards, logout, toast, route guards
   contexts/       # Zustand auth store (user, token, role)
   hooks/          # Location options (cities + airports)
-  pages/          # Dashboard, book ticket, bookings, admin
+  pages/          # Dashboard, search, checkout, bookings, receipt, admin
   services/       # Customer APIs, booking APIs, admin APIs, flight cache
   utils/          # JWT helpers, API response parsing, flight normalizers
   App.jsx         # Route map
@@ -127,8 +128,10 @@ VITE_API_BASE_URL=http://localhost:3001
 |------|--------|
 | `/`, `/dashboard` | Authenticated traveler |
 | `/login`, `/signup` | Public |
-| `/bookticket` | Authenticated traveler |
-| `/bookings` | Authenticated traveler |
+| `/searchflights` | Authenticated traveler — search & filters |
+| `/searchflights/:flightId` | Authenticated traveler — reserve & pay |
+| `/bookings` | Authenticated traveler — booked tickets |
+| `/bookings/:bookingId` | Authenticated traveler — printable receipt |
 | `/admin/signin` | Public (admin credentials) |
 | `/admin` | Admin JWT only |
 
