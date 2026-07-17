@@ -318,6 +318,7 @@ function BookTicketPage() {
                 <FlightCard
                   key={flight.id || `${flight.flightNumber || 'flight'}-${index}`}
                   flight={flight}
+                  locationOptions={locationOptions}
                   onBook={handleSelectFlight}
                   bookingDisabled={!flight.id || loading}
                   bookingLabel="Book now"

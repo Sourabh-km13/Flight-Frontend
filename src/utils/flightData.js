@@ -47,6 +47,23 @@ export function buildLocationOptions(citiesResponse, airportsResponse) {
     .sort((first, second) => first.label.localeCompare(second.label))
 }
 
+/** Resolve city display name from search location options (cities + airports already loaded). */
+export function getCityNameForAirport(locationOptions, airportCode, airport) {
+  const nested = airport?.city?.name || airport?.City?.name || airport?.cityName
+  if (nested) {
+    return nested
+  }
+
+  const code = String(airportCode || airport?.code || '')
+    .trim()
+    .toUpperCase()
+  if (!code || !Array.isArray(locationOptions)) {
+    return ''
+  }
+
+  return locationOptions.find((option) => option.code === code)?.cityName || ''
+}
+
 export function updateFlightSeatsInList(flights, flightId, seatsDelta) {
   return flights.map((flight) =>
     flight.id === flightId ? { ...flight, totalSeats: Math.max(Number(flight.totalSeats ?? 0) + seatsDelta, 0) } : flight,

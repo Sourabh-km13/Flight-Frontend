@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { AirplaneIcon, AirportIcon, GateIcon, MoneyIcon, SeatIcon } from '../components/TravelIcons'
 import useAuthStore from '../contexts/authStore'
+import { useLocationOptions } from '../hooks/useLocationOptions'
 import { fetchBookingById } from '../services/bookingService'
 import { getUserIdFromToken } from '../utils/authToken'
+import { getCityNameForAirport } from '../utils/flightData'
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', {
@@ -35,16 +37,7 @@ function getAirportName(airport, fallback) {
   return typeof airport === 'string' ? airport : airport?.name || airport?.code || fallback
 }
 
-function getCityName(airport) {
-  if (!airport || typeof airport === 'string') {
-    return ''
-  }
-
-  return airport.city?.name || airport.City?.name || airport.cityName || ''
-}
-
-function formatPlace(airport, code, fallbackName) {
-  const city = getCityName(airport)
+function formatPlace(city, airport, code, fallbackName) {
   const airportName = getAirportName(airport, fallbackName)
 
   if (city && airportName && city !== airportName) {
@@ -68,6 +61,7 @@ function BookingReceiptPage() {
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
+  const { locationOptions } = useLocationOptions(token)
 
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -124,10 +118,10 @@ function BookingReceiptPage() {
   const pnr = useMemo(() => buildPnr(booking?.id), [booking?.id])
   const fromCode = getRouteCode(flight.departureAirportId, flight.DepartureAirport, 'FROM')
   const toCode = getRouteCode(flight.arrivalAirportId, flight.ArrivalAirport, 'TO')
-  const fromPlace = formatPlace(flight.DepartureAirport, fromCode, fromCode)
-  const toPlace = formatPlace(flight.ArrivalAirport, toCode, toCode)
-  const fromCity = getCityName(flight.DepartureAirport)
-  const toCity = getCityName(flight.ArrivalAirport)
+  const fromCity = getCityNameForAirport(locationOptions, fromCode, flight.DepartureAirport)
+  const toCity = getCityNameForAirport(locationOptions, toCode, flight.ArrivalAirport)
+  const fromPlace = formatPlace(fromCity, flight.DepartureAirport, fromCode, fromCode)
+  const toPlace = formatPlace(toCity, flight.ArrivalAirport, toCode, toCode)
 
   const handleLogout = () => {
     clearAuth()

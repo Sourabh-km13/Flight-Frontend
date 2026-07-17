@@ -1,6 +1,14 @@
+import { getCityNameForAirport } from '../utils/flightData'
 import { AirplaneIcon, AirportIcon, GateIcon, MoneyIcon, SeatIcon } from './TravelIcons'
 
-function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled = false, isSelected = false }) {
+function FlightCard({
+  flight,
+  locationOptions = [],
+  onBook,
+  bookingLabel = 'Book now',
+  bookingDisabled = false,
+  isSelected = false,
+}) {
   const {
     flightNumber,
     price,
@@ -20,7 +28,6 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
 
   const routeCode = (value, airport, fallback) => value || airport?.code || fallback
   const airportName = (value, fallback) => (typeof value === 'string' ? value : value?.name || value?.code || fallback)
-  const cityName = (airport) => airport?.city?.name || airport?.City?.name || airport?.cityName || ''
   const airplaneName = typeof AirplaneDetail === 'string' ? AirplaneDetail : AirplaneDetail?.modelNumber || `Plane #${airplaneId ?? '-'}`
   const formatDate = (value) =>
     value
@@ -35,8 +42,8 @@ function FlightCard({ flight, onBook, bookingLabel = 'Book now', bookingDisabled
 
   const fromCode = routeCode(departureAirportId, DepartureAirport, 'BOM')
   const toCode = routeCode(arrivalAirportId, ArrivalAirport, 'DEL')
-  const fromCity = cityName(DepartureAirport)
-  const toCity = cityName(ArrivalAirport)
+  const fromCity = getCityNameForAirport(locationOptions, fromCode, DepartureAirport)
+  const toCity = getCityNameForAirport(locationOptions, toCode, ArrivalAirport)
   const fromAirport = airportName(DepartureAirport, fromCode)
   const toAirport = airportName(ArrivalAirport, toCode)
 

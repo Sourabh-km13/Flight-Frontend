@@ -6,6 +6,7 @@ import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
 import Toast from '../components/Toast'
 import useAuthStore from '../contexts/authStore'
+import { useLocationOptions } from '../hooks/useLocationOptions'
 import { createBooking, makePayment } from '../services/bookingService'
 import { fetchFlightById, updateCachedAllFlightSeats } from '../services/authService'
 import { getUserIdFromToken } from '../utils/authToken'
@@ -18,6 +19,7 @@ function FlightBookingPage() {
   const { flightId } = useParams()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
+  const { locationOptions } = useLocationOptions(token)
 
   const stateFlight = location.state?.flight
   const initialFlight =
@@ -275,7 +277,7 @@ function FlightBookingPage() {
 
         {!loadingFlight && !flightError && flight && !confirmedBooking ? (
           <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-            <FlightCard flight={flight} />
+            <FlightCard flight={flight} locationOptions={locationOptions} />
             <BookingPanel
               flight={flight}
               seats={seatCount}
