@@ -46,6 +46,19 @@ export async function fetchAllFlights(token, { forceRefresh = false } = {}) {
   return getCachedAllFlights(token, () => fetchFlights(token), { forceRefresh })
 }
 
+export async function fetchFlightById(token, flightId) {
+  try {
+    const response = await authApi.get(`/flightservice/api/v1/flight/${flightId}`, {
+      headers: {
+        'x-access-token': token,
+      },
+    })
+    return getApiData(response)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, 'Unable to fetch flight details'), { cause: error })
+  }
+}
+
 export async function fetchCities(token) {
   try {
     const response = await authApi.get('/flightservice/api/v1/city', {
