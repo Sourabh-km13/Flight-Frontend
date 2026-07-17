@@ -4,6 +4,7 @@ import BookingPanel from '../components/BookingPanel'
 import BookingSummaryCard from '../components/BookingSummaryCard'
 import FlightCard from '../components/FlightCard'
 import Navbar from '../components/Navbar'
+import Toast from '../components/Toast'
 import useAuthStore from '../contexts/authStore'
 import { createBooking, makePayment } from '../services/bookingService'
 import { fetchFlightById, updateCachedAllFlightSeats } from '../services/authService'
@@ -16,6 +17,7 @@ function FlightBookingPage() {
   const location = useLocation()
   const { flightId } = useParams()
   const token = useAuthStore((state) => state.token)
+  const user = useAuthStore((state) => state.user)
   const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const stateFlight = location.state?.flight
@@ -33,6 +35,7 @@ function FlightBookingPage() {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [bookingExpiresAt, setBookingExpiresAt] = useState(null)
   const [remainingSeconds, setRemainingSeconds] = useState(BOOKING_EXPIRY_SECONDS)
+  const [toastMessage, setToastMessage] = useState('')
 
   const bookingExpired = Boolean(activeBooking && bookingExpiresAt && remainingSeconds <= 0)
   const visibleBookingError = bookingExpired
@@ -178,12 +181,14 @@ function FlightBookingPage() {
         totalCost: activeBooking.totalCost,
       })
       const confirmed = Array.isArray(payment) ? { ...activeBooking, status: 'booked' } : payment
+      const email = user?.email || 'your registered email'
 
       setConfirmedBooking(confirmed)
       setActiveBooking(null)
       setBookingExpiresAt(null)
       setRemainingSeconds(BOOKING_EXPIRY_SECONDS)
       setSeatCount(1)
+      setToastMessage(`Your ticket has been sent to ${email}.`)
     } catch (err) {
       setBookingError(err.message || 'Could not confirm payment')
     } finally {
@@ -203,6 +208,7 @@ function FlightBookingPage() {
   return (
     <div className="app-shell relative">
       <Navbar />
+      <Toast message={toastMessage} onClose={() => setToastMessage('')} />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_32%)]" />
       <main className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
         <section className="glass-panel overflow-hidden rounded-[2.5rem] p-7 sm:p-9">
