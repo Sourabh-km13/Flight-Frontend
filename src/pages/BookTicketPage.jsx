@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CitySearchInput from '../components/CitySearchInput'
 import FlightCard from '../components/FlightCard'
+import LogoutButton from '../components/LogoutButton'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { useLocationOptions } from '../hooks/useLocationOptions'
@@ -11,7 +12,6 @@ import { normalizeFlights } from '../utils/flightData'
 function BookTicketPage() {
   const navigate = useNavigate()
   const token = useAuthStore((state) => state.token)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
   const [flights, setFlights] = useState([])
   const [search, setSearch] = useState({
     from: '',
@@ -138,12 +138,7 @@ function BookTicketPage() {
       return
     }
 
-    navigate(`/bookticket/${flight.id}`, { state: { flight } })
-  }
-
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
+    navigate(`/searchflights/${flight.id}`, { state: { flight } })
   }
 
   return (
@@ -163,12 +158,7 @@ function BookTicketPage() {
                 >
                   Dashboard
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="btn-logout px-5 py-3 text-sm"
-                >
-                  Logout
-                </button>
+                <LogoutButton className="px-5 py-3 text-sm" />
               </div>
             </div>
 

@@ -168,6 +168,40 @@ select {
   background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
 }
 
+.toast-shine {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #f43f5e;
+}
+
+.toast-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.75) 50%,
+    transparent 65%,
+    transparent 100%
+  );
+  transform: translateX(-120%);
+  animation: toast-shine-sweep 2.2s ease-in-out infinite;
+}
+
+@keyframes toast-shine-sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  55%,
+  100% {
+    transform: translateX(120%);
+  }
+}
+
 .icon-chip {
   display: inline-flex;
   align-items: center;

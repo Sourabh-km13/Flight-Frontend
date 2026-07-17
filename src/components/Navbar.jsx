@@ -18,8 +18,8 @@ function Navbar() {
       <div className="hidden items-center gap-7 md:flex">
         {token ? (
           <>
-            <Link to="/bookticket" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
-              Book tickets
+            <Link to="/searchflights" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
+              Search flights
             </Link>
             <Link to="/bookings" className="text-sm font-semibold text-slate-600 transition hover:text-slate-950">
               Booked tickets

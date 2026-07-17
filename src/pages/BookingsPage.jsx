@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import LogoutButton from '../components/LogoutButton'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import { fetchUserBookings } from '../services/bookingService'
@@ -102,9 +103,7 @@ function BookingJourneyCard({ booking }) {
 }
 
 function BookingsPage() {
-  const navigate = useNavigate()
   const token = useAuthStore((state) => state.token)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -156,11 +155,6 @@ function BookingsPage() {
     }
   }, [token])
 
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
-  }
-
   return (
     <div className="app-shell relative">
       <Navbar />
@@ -174,17 +168,12 @@ function BookingsPage() {
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                to="/dashboard"
+                to="/searchflights"
                 className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:text-slate-950"
               >
-                Book tickets
+                Search flights
               </Link>
-              <button
-                onClick={handleLogout}
-                className="btn-logout px-6 py-3 text-sm"
-              >
-                Logout
-              </button>
+              <LogoutButton className="px-6 py-3 text-sm" />
             </div>
           </div>
 

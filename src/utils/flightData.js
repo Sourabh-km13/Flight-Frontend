@@ -47,6 +47,17 @@ export function buildLocationOptions(citiesResponse, airportsResponse) {
     .sort((first, second) => first.label.localeCompare(second.label))
 }
 
+function getLocationOption(locationOptions, airportCode, airport) {
+  const code = String(airportCode || airport?.code || '')
+    .trim()
+    .toUpperCase()
+  if (!code || !Array.isArray(locationOptions)) {
+    return null
+  }
+
+  return locationOptions.find((option) => option.code === code) || null
+}
+
 /** Resolve city display name from search location options (cities + airports already loaded). */
 export function getCityNameForAirport(locationOptions, airportCode, airport) {
   const nested = airport?.city?.name || airport?.City?.name || airport?.cityName
@@ -54,14 +65,21 @@ export function getCityNameForAirport(locationOptions, airportCode, airport) {
     return nested
   }
 
-  const code = String(airportCode || airport?.code || '')
-    .trim()
-    .toUpperCase()
-  if (!code || !Array.isArray(locationOptions)) {
-    return ''
+  return getLocationOption(locationOptions, airportCode, airport)?.cityName || ''
+}
+
+/** Resolve airport display name from search location options. */
+export function getAirportNameForCode(locationOptions, airportCode, airport) {
+  if (typeof airport === 'string' && airport.trim()) {
+    return airport.trim()
   }
 
-  return locationOptions.find((option) => option.code === code)?.cityName || ''
+  const nested = airport?.name
+  if (nested) {
+    return nested
+  }
+
+  return getLocationOption(locationOptions, airportCode, airport)?.airportName || ''
 }
 
 export function updateFlightSeatsInList(flights, flightId, seatsDelta) {

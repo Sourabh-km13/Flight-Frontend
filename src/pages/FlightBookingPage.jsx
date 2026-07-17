@@ -198,7 +198,7 @@ function FlightBookingPage() {
   }
 
   const handleBackToSearch = () => {
-    navigate('/bookticket')
+    navigate('/searchflights')
   }
 
   return (
@@ -266,7 +266,7 @@ function FlightBookingPage() {
                 All booked tickets
               </Link>
               <Link
-                to="/bookticket"
+                to="/searchflights"
                 className="rounded-full border border-orange-200 bg-orange-50 px-5 py-3 text-sm font-black text-orange-800"
               >
                 Search more flights

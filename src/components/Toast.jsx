@@ -19,15 +19,15 @@ function Toast({ message, onClose, durationMs = 4000 }) {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-5 z-50 flex justify-center px-4">
-      <div className="pointer-events-auto soft-card flex max-w-lg items-start gap-4 rounded-[1.5rem] border border-sky-100 bg-white px-5 py-4 shadow-xl shadow-sky-900/10">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-sky-700">Ticket email</p>
+      <div className="toast-shine pointer-events-auto soft-card flex max-w-lg items-start gap-4 rounded-[1.5rem] bg-white px-5 py-4 shadow-xl shadow-rose-900/10">
+        <div className="relative z-10 min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-rose-700">Ticket email</p>
           <p className="mt-2 text-sm font-semibold leading-6 text-slate-700">{message}</p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full border border-slate-200 px-3 py-1 text-xs font-bold text-slate-500 transition hover:text-slate-950"
+          className="relative z-10 rounded-full border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 transition hover:border-rose-300 hover:text-rose-800"
         >
           Close
         </button>

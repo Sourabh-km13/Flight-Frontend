@@ -59,7 +59,7 @@ function App() {
           }
         />
         <Route
-          path="/bookticket"
+          path="/searchflights"
           element={
             <ProtectedRoute>
               <BookTicketPage />
@@ -67,7 +67,7 @@ function App() {
           }
         />
         <Route
-          path="/bookticket/:flightId"
+          path="/searchflights/:flightId"
           element={
             <ProtectedRoute>
               <FlightBookingPage />

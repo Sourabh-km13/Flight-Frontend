@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import LogoutButton from '../components/LogoutButton'
 import Navbar from '../components/Navbar'
 import { AirplaneIcon, AirportIcon, GateIcon, MoneyIcon, SeatIcon } from '../components/TravelIcons'
 import useAuthStore from '../contexts/authStore'
 import { useLocationOptions } from '../hooks/useLocationOptions'
 import { fetchBookingById } from '../services/bookingService'
 import { getUserIdFromToken } from '../utils/authToken'
-import { getCityNameForAirport } from '../utils/flightData'
+import { getAirportNameForCode, getCityNameForAirport } from '../utils/flightData'
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('en-IN', {
@@ -37,30 +38,14 @@ function getAirportName(airport, fallback) {
   return typeof airport === 'string' ? airport : airport?.name || airport?.code || fallback
 }
 
-function formatPlace(city, airport, code, fallbackName) {
-  const airportName = getAirportName(airport, fallbackName)
-
-  if (city && airportName && city !== airportName) {
-    return `${city} · ${airportName} (${code})`
-  }
-
-  if (airportName) {
-    return `${airportName} (${code})`
-  }
-
-  return code
-}
-
 function buildPnr(bookingId) {
   return `FS${String(bookingId ?? '').padStart(6, '0')}`
 }
 
 function BookingReceiptPage() {
-  const navigate = useNavigate()
   const { bookingId } = useParams()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
   const { locationOptions } = useLocationOptions(token)
 
   const [booking, setBooking] = useState(null)
@@ -120,13 +105,8 @@ function BookingReceiptPage() {
   const toCode = getRouteCode(flight.arrivalAirportId, flight.ArrivalAirport, 'TO')
   const fromCity = getCityNameForAirport(locationOptions, fromCode, flight.DepartureAirport)
   const toCity = getCityNameForAirport(locationOptions, toCode, flight.ArrivalAirport)
-  const fromPlace = formatPlace(fromCity, flight.DepartureAirport, fromCode, fromCode)
-  const toPlace = formatPlace(toCity, flight.ArrivalAirport, toCode, toCode)
-
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
-  }
+  const fromAirport = getAirportNameForCode(locationOptions, fromCode, flight.DepartureAirport) || getAirportName(flight.DepartureAirport, fromCode)
+  const toAirport = getAirportNameForCode(locationOptions, toCode, flight.ArrivalAirport) || getAirportName(flight.ArrivalAirport, toCode)
 
   const handlePrint = () => {
     window.print()
@@ -162,9 +142,7 @@ function BookingReceiptPage() {
               >
                 Download / Print
               </button>
-              <button type="button" onClick={handleLogout} className="btn-logout px-5 py-3 text-sm">
-                Logout
-              </button>
+              <LogoutButton className="px-5 py-3 text-sm" />
             </div>
           </div>
         </section>
@@ -231,7 +209,7 @@ function BookingReceiptPage() {
                   </p>
                   <p className="mt-3 text-4xl font-black text-slate-950">{fromCode}</p>
                   {fromCity ? <p className="mt-1 text-base font-black text-orange-800">{fromCity}</p> : null}
-                  <p className="mt-1 text-sm font-semibold text-slate-600">{fromPlace}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">{fromAirport}</p>
                   <p className="mt-2 text-sm font-semibold text-slate-700">{formatDateTime(flight.departureTime)}</p>
                 </div>
                 <div className="flex items-center text-orange-500">
@@ -244,7 +222,7 @@ function BookingReceiptPage() {
                   </p>
                   <p className="mt-3 text-4xl font-black text-slate-950">{toCode}</p>
                   {toCity ? <p className="mt-1 text-base font-black text-emerald-800">{toCity}</p> : null}
-                  <p className="mt-1 text-sm font-semibold text-slate-600">{toPlace}</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-600">{toAirport}</p>
                   <p className="mt-2 text-sm font-semibold text-slate-700">{formatDateTime(flight.arrivalTime)}</p>
                 </div>
               </div>

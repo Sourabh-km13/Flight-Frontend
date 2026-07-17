@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import LogoutButton from '../components/LogoutButton'
 import useAuthStore from '../contexts/authStore'
 import {
   createAdminAirplane,
@@ -71,10 +72,8 @@ const inputClass =
   'w-full rounded-2xl border border-slate-200 bg-white/90 px-4 py-3 text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-sky-400 focus:ring-4 focus:ring-sky-500/10'
 
 function AdminDashboardPage() {
-  const navigate = useNavigate()
   const token = useAuthStore((state) => state.token)
   const user = useAuthStore((state) => state.user)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const [tab, setTab] = useState('city')
   const [cities, setCities] = useState([])
@@ -254,11 +253,6 @@ function AdminDashboardPage() {
     }
   }
 
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/admin/signin')
-  }
-
   const cityNameById = useMemo(() => {
     const map = new Map()
     cities.forEach((city) => map.set(String(city.id), city.name))
@@ -283,13 +277,7 @@ function AdminDashboardPage() {
           <Link to="/" className="hidden text-sm font-semibold text-slate-600 transition hover:text-slate-950 sm:inline">
             Traveler site
           </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-slate-300"
-          >
-            Logout
-          </button>
+          <LogoutButton className="px-5 py-2.5 text-sm" redirectTo="/admin/signin" />
         </div>
       </header>
 

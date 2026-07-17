@@ -1,12 +1,10 @@
 import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 
 function DashboardPage() {
-  const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
 
   const stats = useMemo(
     () => [
@@ -17,28 +15,15 @@ function DashboardPage() {
     [user],
   )
 
-  const handleLogout = () => {
-    clearAuth()
-    navigate('/login')
-  }
-
   return (
     <div className="app-shell relative">
       <Navbar />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.16),_transparent_32%)]" />
       <main className="relative mx-auto flex w-full max-w-7xl flex-col gap-8 px-5 py-8 sm:px-8 lg:px-10">
         <section className="glass-panel overflow-hidden rounded-[2.5rem] p-7 sm:p-9">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div className="max-w-2xl">
-              <p className="eyebrow">Dashboard</p>
-              <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Welcome back</h1>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="inline-flex rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-black text-slate-700 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-950"
-            >
-              Logout
-            </button>
+          <div className="max-w-2xl">
+            <p className="eyebrow">Dashboard</p>
+            <h1 className="mt-5 text-4xl font-black tracking-tight text-slate-950 sm:text-6xl">Welcome back</h1>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -52,7 +37,7 @@ function DashboardPage() {
 
           <div className="mt-8 grid gap-5 lg:grid-cols-2">
             <Link
-              to="/bookticket"
+              to="/searchflights"
               className="group relative overflow-hidden rounded-[2rem] bg-slate-950 p-7 text-left text-white shadow-2xl shadow-sky-950/20 transition duration-300 hover:-translate-y-1"
             >
               <span className="absolute -right-10 -top-10 h-40 w-40 animate-pulse rounded-full bg-sky-400/30 blur-2xl" />
@@ -60,7 +45,7 @@ function DashboardPage() {
               <span className="relative block text-xs font-bold uppercase tracking-[0.28em] text-sky-200">Search flights</span>
               <span className="relative mt-5 block text-3xl font-black tracking-tight">Find your next route</span>
               <span className="relative mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-black text-slate-950 transition group-hover:scale-105">
-                Open booking
+                Search flights
               </span>
             </Link>
 
