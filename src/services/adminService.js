@@ -1,12 +1,5 @@
-import axios from 'axios'
+import apiClient from '../utils/axiosInstance'
 import { getApiData, getApiErrorMessage } from '../utils/apiResponse'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-
-const adminApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-})
 
 function authHeaders(token) {
   return { 'x-access-token': token }
@@ -14,7 +7,7 @@ function authHeaders(token) {
 
 export async function adminLogin(payload) {
   try {
-    const response = await adminApi.post('/admin/signin', payload)
+    const response = await apiClient.post('/admin/signin', payload)
     return response.data
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Admin login failed'), { cause: error })
@@ -23,7 +16,7 @@ export async function adminLogin(payload) {
 
 async function adminGet(path, token, params) {
   try {
-    const response = await adminApi.get(`/admin/flightservice${path}`, {
+    const response = await apiClient.get(`/admin/flightservice${path}`, {
       params,
       headers: authHeaders(token),
     })
@@ -35,7 +28,7 @@ async function adminGet(path, token, params) {
 
 async function adminPost(path, token, body) {
   try {
-    const response = await adminApi.post(`/admin/flightservice${path}`, body, {
+    const response = await apiClient.post(`/admin/flightservice${path}`, body, {
       headers: authHeaders(token),
     })
     return getApiData(response)
@@ -46,7 +39,7 @@ async function adminPost(path, token, body) {
 
 async function adminPatch(path, token, body) {
   try {
-    const response = await adminApi.patch(`/admin/flightservice${path}`, body, {
+    const response = await apiClient.patch(`/admin/flightservice${path}`, body, {
       headers: authHeaders(token),
     })
     return getApiData(response)
@@ -57,7 +50,7 @@ async function adminPatch(path, token, body) {
 
 async function adminPut(path, token, body) {
   try {
-    const response = await adminApi.put(`/admin/flightservice${path}`, body, {
+    const response = await apiClient.put(`/admin/flightservice${path}`, body, {
       headers: authHeaders(token),
     })
     return getApiData(response)
@@ -68,7 +61,7 @@ async function adminPut(path, token, body) {
 
 async function adminDelete(path, token) {
   try {
-    const response = await adminApi.delete(`/admin/flightservice${path}`, {
+    const response = await apiClient.delete(`/admin/flightservice${path}`, {
       headers: authHeaders(token),
     })
     return getApiData(response)

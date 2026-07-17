@@ -1,46 +1,9 @@
-import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
-
-const bookingApi = axios.create({
-  baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
-})
-
-function normalizeMessage(value) {
-  if (Array.isArray(value)) {
-    return value.filter(Boolean).join(', ')
-  }
-
-  if (typeof value === 'string') {
-    return value
-  }
-
-  return ''
-}
-
-function getErrorMessage(error, fallback) {
-  const data = error.response?.data
-  const failResponse = data?.failResponse
-
-  return (
-    normalizeMessage(failResponse?.data?.explanation) ||
-    normalizeMessage(failResponse?.data?.message) ||
-    normalizeMessage(failResponse?.error) ||
-    normalizeMessage(data?.error?.message) ||
-    normalizeMessage(data?.message) ||
-    normalizeMessage(failResponse?.message) ||
-    fallback
-  )
-}
-
-function getResponseData(response) {
-  return response.data?.data ?? response.data
-}
+import apiClient from '../utils/axiosInstance'
+import { getApiData, getApiErrorMessage } from '../utils/apiResponse'
 
 export async function createBooking({ token, flightId, userId, noOfSeats }) {
   try {
-    const response = await bookingApi.post(
+    const response = await apiClient.post(
       '/bookingservice/api/v1/booking',
       { flightId, userId, noOfSeats },
       {
@@ -50,15 +13,15 @@ export async function createBooking({ token, flightId, userId, noOfSeats }) {
       },
     )
 
-    return getResponseData(response)
+    return getApiData(response)
   } catch (error) {
-    throw new Error(getErrorMessage(error, 'Unable to create booking'), { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Unable to create booking'), { cause: error })
   }
 }
 
 export async function makePayment({ token, bookingId, userId, totalCost }) {
   try {
-    const response = await bookingApi.post(
+    const response = await apiClient.post(
       '/bookingservice/api/v1/booking/payment',
       { bookingId, userId, totalCost },
       {
@@ -68,37 +31,37 @@ export async function makePayment({ token, bookingId, userId, totalCost }) {
       },
     )
 
-    return getResponseData(response)
+    return getApiData(response)
   } catch (error) {
-    throw new Error(getErrorMessage(error, 'Unable to confirm payment'), { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Unable to confirm payment'), { cause: error })
   }
 }
 
 export async function fetchUserBookings({ token, userId, status }) {
   try {
-    const response = await bookingApi.get(`/bookingservice/api/v1/booking/user/${userId}`, {
+    const response = await apiClient.get(`/bookingservice/api/v1/booking/user/${userId}`, {
       params: status ? { status } : {},
       headers: {
         'x-access-token': token,
       },
     })
 
-    return getResponseData(response)
+    return getApiData(response)
   } catch (error) {
-    throw new Error(getErrorMessage(error, 'Unable to fetch bookings'), { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Unable to fetch bookings'), { cause: error })
   }
 }
 
 export async function fetchBookingById({ token, bookingId }) {
   try {
-    const response = await bookingApi.get(`/bookingservice/api/v1/booking/${bookingId}`, {
+    const response = await apiClient.get(`/bookingservice/api/v1/booking/${bookingId}`, {
       headers: {
         'x-access-token': token,
       },
     })
 
-    return getResponseData(response)
+    return getApiData(response)
   } catch (error) {
-    throw new Error(getErrorMessage(error, 'Unable to fetch booking receipt'), { cause: error })
+    throw new Error(getApiErrorMessage(error, 'Unable to fetch booking receipt'), { cause: error })
   }
 }
