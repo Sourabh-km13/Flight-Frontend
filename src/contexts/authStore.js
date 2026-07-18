@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getRoleFromToken } from '../utils/authToken'
+import { clearAllFlightsCache } from '../services/flightCache'
+import { clearLocationCache } from '../services/locationCache'
+import { clearBookingCache } from '../services/bookingCache'
 
 const useAuthStore = create(
   persist(
@@ -14,7 +17,12 @@ const useAuthStore = create(
           token,
           role: getRoleFromToken(token),
         }),
-      clearAuth: () => set({ user: null, token: null, role: null }),
+      clearAuth: () => {
+        clearAllFlightsCache()
+        clearLocationCache()
+        clearBookingCache()
+        set({ user: null, token: null, role: null })
+      },
     }),
     {
       name: 'flight-auth-storage',

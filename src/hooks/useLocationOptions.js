@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchAirports, fetchCities } from '../services/authService'
+import { getCachedLocationData } from '../services/locationCache'
 import { buildLocationOptions } from '../utils/flightData'
 
 export function useLocationOptions(token) {
@@ -15,10 +16,13 @@ export function useLocationOptions(token) {
       setLocationsError('')
 
       try {
-        const [citiesResponse, airportsResponse] = await Promise.all([fetchCities(token), fetchAirports(token)])
+        const { cities, airports } = await getCachedLocationData(token, async () => {
+          const [citiesResponse, airportsResponse] = await Promise.all([fetchCities(token), fetchAirports(token)])
+          return { cities: citiesResponse, airports: airportsResponse }
+        })
 
         if (shouldUpdate) {
-          setLocationOptions(buildLocationOptions(citiesResponse, airportsResponse))
+          setLocationOptions(buildLocationOptions(cities, airports))
         }
       } catch (err) {
         if (shouldUpdate) {

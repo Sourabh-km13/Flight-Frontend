@@ -1,6 +1,11 @@
 import apiClient from '../utils/axiosInstance'
 import { getApiData, getApiErrorMessage } from '../utils/apiResponse'
-import { getCachedAllFlights } from './flightCache'
+import {
+  getCachedAllFlights,
+  getCachedFlightDetail,
+  getFlightFromAllCache,
+  setCachedFlightDetail,
+} from './flightCache'
 export { clearAllFlightsCache, updateCachedAllFlightSeats } from './flightCache'
 
 export async function loginUser(payload) {
@@ -39,14 +44,28 @@ export async function fetchAllFlights(token, { forceRefresh = false } = {}) {
   return getCachedAllFlights(token, () => fetchFlights(token), { forceRefresh })
 }
 
-export async function fetchFlightById(token, flightId) {
+export async function fetchFlightById(token, flightId, { forceRefresh = false } = {}) {
+  if (!forceRefresh) {
+    const fromAllCache = getFlightFromAllCache(token, flightId)
+    if (fromAllCache) {
+      return fromAllCache
+    }
+
+    const fromDetailCache = getCachedFlightDetail(token, flightId)
+    if (fromDetailCache) {
+      return fromDetailCache
+    }
+  }
+
   try {
     const response = await apiClient.get(`/flightservice/api/v1/flight/${flightId}`, {
       headers: {
         'x-access-token': token,
       },
     })
-    return getApiData(response)
+    const flight = getApiData(response)
+    setCachedFlightDetail(token, flightId, flight)
+    return flight
   } catch (error) {
     throw new Error(getApiErrorMessage(error, 'Unable to fetch flight details'), { cause: error })
   }
