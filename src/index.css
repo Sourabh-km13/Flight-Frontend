@@ -202,6 +202,19 @@ select {
   }
 }
 
+.wake-progress {
+  animation: wake-progress-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes wake-progress-slide {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
 .icon-chip {
   display: inline-flex;
   align-items: center;
