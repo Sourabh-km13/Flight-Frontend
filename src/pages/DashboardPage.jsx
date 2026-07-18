@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import useAuthStore from '../contexts/authStore'
 import LogoutButton from '../components/LogoutButton'

@@ -3,14 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import AuthCard from '../components/AuthCard'
 import InputField from '../components/InputField'
 import PrimaryButton from '../components/PrimaryButton'
-import useAuthStore from '../contexts/authStore'
 import { signupUser } from '../services/authService'
 
 function SignupPage() {
   const navigate = useNavigate()
-  const setAuth = useAuthStore((state) => state.setAuth)
   const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
 
   const handleChange = (event) => {
@@ -22,17 +21,16 @@ function SignupPage() {
     event.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
 
     try {
-      const response = await signupUser({ name: form.name, email: form.email, password: form.password })
-      const token = response.token || response.accessToken || response.jwt || response.data
-      if (!token || typeof token !== 'string') {
-        throw new Error('Signup succeeded but no auth token was returned')
-      }
-
-      const user = response.user || { name: form.name, email: form.email }
-      setAuth(user, token)
-      navigate('/dashboard')
+      await signupUser({ name: form.name, email: form.email, password: form.password })
+      const message = 'Signup successful. Proceed with sign in.'
+      setSuccess(message)
+      navigate('/login', {
+        replace: true,
+        state: { signupSuccess: message, email: form.email },
+      })
     } catch (err) {
       setError(err.message || 'Unable to create account')
     } finally {
@@ -72,7 +70,8 @@ function SignupPage() {
           onChange={handleChange}
           placeholder="Create a password"
         />
-        {error ? <p className="text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="text-sm font-semibold text-red-400">{error}</p> : null}
+        {success ? <p className="text-sm font-semibold text-emerald-500">{success}</p> : null}
         <PrimaryButton type="submit" disabled={loading}>
           {loading ? 'Creating account...' : 'Create account'}
         </PrimaryButton>

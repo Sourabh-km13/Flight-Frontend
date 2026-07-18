@@ -10,8 +10,12 @@ function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const setAuth = useAuthStore((state) => state.setAuth)
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm] = useState({
+    email: location.state?.email || '',
+    password: '',
+  })
   const [error, setError] = useState('')
+  const [success] = useState(location.state?.signupSuccess || '')
   const [loading, setLoading] = useState(false)
   const redirectTo = location.state?.from?.pathname || '/dashboard'
 
@@ -67,7 +71,8 @@ function LoginPage() {
           onChange={handleChange}
           placeholder="Enter your password"
         />
-        {error ? <p className="text-sm text-red-400">{error}</p> : null}
+        {error ? <p className="text-sm font-semibold text-red-400">{error}</p> : null}
+        {success ? <p className="text-sm font-semibold text-emerald-500">{success}</p> : null}
         <PrimaryButton type="submit" disabled={loading}>
           {loading ? 'Signing in...' : 'Sign in'}
         </PrimaryButton>
