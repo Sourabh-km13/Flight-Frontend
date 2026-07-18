@@ -15,16 +15,15 @@ export async function wakeApiGateway() {
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/health`, {
+      const response = await axios.get(`${API_BASE_URL}/wake`, {
         timeout: HEALTH_TIMEOUT_MS,
-        headers: { 'Content-Type': 'application/json' },
       })
 
       if (response.status >= 200 && response.status < 300) {
         return response.data
       }
 
-      lastError = new Error(`Gateway health returned HTTP ${response.status}`)
+      lastError = new Error(`Gateway wake returned HTTP ${response.status}`)
     } catch (error) {
       lastError = error
       if (attempt < MAX_ATTEMPTS) {
