@@ -19,11 +19,11 @@ export async function createBooking({ token, flightId, userId, noOfSeats }) {
   }
 }
 
-export async function makePayment({ token, bookingId, userId, totalCost }) {
+export async function makePayment({ token, bookingId, userId, totalCost,userEmail }) {
   try {
     const response = await apiClient.post(
       '/bookingservice/api/v1/booking/payment',
-      { bookingId, userId, totalCost },
+      { bookingId, userId, totalCost,userEmail },
       {
         headers: {
           'x-access-token': token,

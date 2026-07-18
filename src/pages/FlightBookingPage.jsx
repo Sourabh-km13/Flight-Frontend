@@ -180,6 +180,7 @@ function FlightBookingPage() {
         bookingId: activeBooking.id,
         userId,
         totalCost: activeBooking.totalCost,
+        userEmail: user?.email || '',
       })
       const confirmed = Array.isArray(payment) ? { ...activeBooking, status: 'booked' } : payment
       const email = user?.email || 'your registered email'
