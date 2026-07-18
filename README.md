@@ -57,12 +57,32 @@ FlySmart demonstrates end-to-end product engineering: authenticated traveler flo
 - Full CRUD for **cities, airports, airplanes, and flights** via the admin proxy
 
 ### Client engineering
-- Route guards for customer and admin sessions (expired JWT cleared)
-- Cold-start **wake gate**: on first load the SPA awaits gateway `GET /health` (loading screen) before unlocking routes; session skip after success
-- In-memory **flight list cache** (60s TTL) with seat updates after booking actions
-- Shared API response helpers for consistent error messaging
-- City/airport labels resolved from catalog data already loaded for search
+- Route guards for customer and admin sessions (expired JWT cleared automatically)
+- Cold-start **wake gate**: on first load the SPA awaits gateway `GET /health` (loading screen) before unlocking routes; session-scoped skip after success
+- Layered **in-memory caching** — location catalog, flight list + per-flight detail, and user bookings — with in-flight request de-duplication and stale-while-revalidate (see [Caching](#caching-strategy))
+- Shared API response/error helpers for consistent messaging across services
+- City/airport labels resolved from catalog data already loaded for search (no extra lookups)
+- All caches cleared on logout to prevent cross-user data leakage
 - Tailwind v4 UI with a cohesive traveler + admin experience
+
+---
+
+## Caching strategy
+
+All caches are **module-level, in-memory, TTL-based, and keyed by session token** — a consistent pattern across three services. Nothing is persisted to storage (a hard refresh starts cold), which keeps things simple and avoids stale seat counts. Every cache is flushed on logout via `clearAuth`.
+
+| Cache | File | TTL | Technique | Why |
+|-------|------|-----|-----------|-----|
+| Cities + airports | `services/locationCache.js` | 10 min | **In-flight promise de-dupe** | Static catalog needed by 3 pages; collapses up to 6 requests into 1 |
+| All-flights list | `services/flightCache.js` | 60s | TTL + local seat updates | Avoids refetching the full list; seat counts patched after booking |
+| Single flight detail | `services/flightCache.js` | 60s | List reuse → per-id map → network | Opening a flight from search does zero network calls |
+| User bookings | `services/bookingCache.js` | 30s | **Stale-while-revalidate** + by-id map | Instant list on return; receipt reuses an already-loaded row |
+
+Highlights:
+- **In-flight de-duplication** — near-simultaneous mounts share a single pending promise instead of each firing a request.
+- **Stale-while-revalidate** — the bookings list returns cached data immediately, then refreshes in the background so the next read is fresh.
+- **Cache coherence** — booking/payment invalidate the bookings list; reserving seats patches the flight list cache and evicts the affected detail entry.
+- **Layered reads** — `fetchFlightById` resolves from the all-flights cache, then the per-id cache, then the network (and `FlightBookingPage` has an even earlier `location.state` shortcut).
 
 ---
 
@@ -83,13 +103,14 @@ FlySmart demonstrates end-to-end product engineering: authenticated traveler flo
 
 ```text
 src/
-  components/     # Auth shell, booking cards, logout, toast, route guards
-  contexts/       # Zustand auth store (user, token, role)
-  hooks/          # Location options (cities + airports)
+  components/     # Auth shell, booking cards, logout, toast, route guards, wake gate
+  contexts/       # Zustand auth store (user, token, role) — clears caches on logout
+  hooks/          # useLocationOptions (cached cities + airports)
   pages/          # Dashboard, search, checkout, bookings, receipt, admin
-  services/       # Customer APIs, booking APIs, admin APIs, flight cache
-  utils/          # JWT helpers, API response parsing, flight normalizers
-  App.jsx         # Route map
+  services/       # Auth/flight/booking/admin APIs + health ping
+                  #   flightCache · locationCache · bookingCache
+  utils/          # axios instance, JWT helpers, API response parsing, flight normalizers
+  App.jsx         # Route map (guards + wake gate)
 ```
 
 ---
@@ -143,7 +164,7 @@ VITE_API_BASE_URL=http://localhost:3001
 1. **Gateway as the only public API** — the SPA never calls Flight or Booking services directly.
 2. **Separate admin client path** — mutations go through `/admin/flightservice`, matching backend RBAC.
 3. **JWT role claim for UI gating** — middleware still re-checks admin on every admin proxy request.
-4. **Client cache for search UX** — reduces repeat full-list fetches while bookings update seat counts locally.
+4. **Layered client caching for UX** — session-scoped in-memory caches (location, flight list + detail, bookings) with in-flight de-dupe and stale-while-revalidate cut redundant fetches; seat counts update locally after booking, and all caches clear on logout.
 5. **Render cold-start wake** — the SPA only pings gateway `/health`. The gateway fire-and-forgets `/health` to Flight and Booking on every call (errors logged, response not delayed) so downstream services wake without exposing their URLs to the frontend.
 
 ---
