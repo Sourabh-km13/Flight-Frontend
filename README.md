@@ -2,6 +2,23 @@
 
 A production-style React SPA for searching flights, holding seats, completing bookings, and managing flight catalog data as an admin. Built as the client for a **microservices** backend (API Gateway + Flight Service + Booking Service).
 
+<p>
+  <a href="https://flight-frontend-eight.vercel.app/"><img alt="Live Demo" src="https://img.shields.io/badge/Live_Demo-Online-2ea44f?style=for-the-badge" /></a>
+</p>
+
+![React](https://img.shields.io/badge/React_19-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite_8-646CFF?logo=vite&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router_7-CA4245?logo=reactrouter&logoColor=white)
+![Zustand](https://img.shields.io/badge/State-Zustand-443E38)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
+![Axios](https://img.shields.io/badge/HTTP-Axios-5A29E4?logo=axios&logoColor=white)
+
+> **Part of the FlySmart platform** · [Overview](../README.md) · [API Gateway](../Api_Gateway_Flight) · [Flight Service](../Flight-Service) · [Booking Service](../Flight-booking-Service)
+
+**Live demo:** https://flight-frontend-eight.vercel.app/ · **API:** https://api-gateway-flight.onrender.com
+
+![FlySmart traveler flow](docs/screenshots/hero.png)
+
 ---
 
 ## Why this project
@@ -169,10 +186,32 @@ VITE_API_BASE_URL=http://localhost:3001
 
 ---
 
+## Skills demonstrated
+
+- **Modern React architecture** — React 19 + React Router 7 with route guards for customer and admin sessions.
+- **Client-side performance** — layered in-memory caching with in-flight request de-duplication and stale-while-revalidate.
+- **State management** — Zustand store for auth/session with automatic cache invalidation on logout.
+- **API integration** — a single shared Axios instance against a gateway, with consistent response/error parsing.
+- **UX for distributed systems** — a cold-start wake gate and a live seat-hold payment countdown that mirrors backend expiry.
+- **Product thinking** — separate traveler and admin experiences mapped cleanly onto backend RBAC.
+
+---
+
+## Screenshots
+
+| Traveler | Admin |
+|----------|-------|
+| ![Traveler](docs/screenshots/hero.png) | ![Admin dashboard](docs/screenshots/admin-crud.png) |
+
+> Add images under [`docs/screenshots`](docs/screenshots).
+
+---
+
 ## Related repositories
 
 | Service | Role |
 |---------|------|
+| [FlySmart overview](../README.md) | Platform overview + live demo |
 | [Api_Gateway_Flight](../Api_Gateway_Flight) | Auth, RBAC, rate limiting, reverse proxy |
 | [Flight-Service](../Flight-Service) | Airplanes, cities, airports, flights, seat inventory |
 | [Flight-booking-Service](../Flight-booking-Service) | Bookings, payment hold, cron expiry, notifications |
@@ -181,4 +220,4 @@ VITE_API_BASE_URL=http://localhost:3001
 
 ## License
 
-Private / educational project.
+Released under the MIT License.
