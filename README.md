@@ -144,7 +144,7 @@ VITE_API_BASE_URL=http://localhost:3001
 2. **Separate admin client path** — mutations go through `/admin/flightservice`, matching backend RBAC.
 3. **JWT role claim for UI gating** — middleware still re-checks admin on every admin proxy request.
 4. **Client cache for search UX** — reduces repeat full-list fetches while bookings update seat counts locally.
-5. **Render cold-start wake** — the SPA only pings gateway `/health`. On the first `/health` after gateway boot, the gateway fire-and-forgets `/health` to Flight and Booking (errors logged, response not delayed) so downstream services wake without exposing their URLs to the frontend.
+5. **Render cold-start wake** — the SPA only pings gateway `/health`. The gateway fire-and-forgets `/health` to Flight and Booking on every call (errors logged, response not delayed) so downstream services wake without exposing their URLs to the frontend.
 
 ---
 
