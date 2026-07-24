@@ -17,7 +17,7 @@ A production-style React SPA for searching flights, holding seats, completing bo
 
 **Live demo:** https://flight-frontend-eight.vercel.app/ · **API:** https://api-gateway-flight.onrender.com
 
-![FlySmart traveler flow](<img width="2292" height="1174" alt="Architecture_flight" src="https://github.com/user-attachments/assets/937bf042-88b6-442b-a1f7-8786e7027ed9" />
+![FlySmart traveler flow](https://github.com/user-attachments/assets/937bf042-88b6-442b-a1f7-8786e7027ed9
 )
 
 ---
