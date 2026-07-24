@@ -13,11 +13,12 @@ A production-style React SPA for searching flights, holding seats, completing bo
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)
 ![Axios](https://img.shields.io/badge/HTTP-Axios-5A29E4?logo=axios&logoColor=white)
 
-> **Part of the FlySmart platform** · [Overview](../README.md) · [API Gateway](../Api_Gateway_Flight) · [Flight Service](../Flight-Service) · [Booking Service](../Flight-booking-Service)
+> **Microservices repositories** · [Overview](../README.md) · [API Gateway](https://github.com/Sourabh-km13/Api_Gateway_Flight) · [Flight Service](https://github.com/Sourabh-km13/Flight-Service) · [Booking Service](https://github.com/Sourabh-km13/Flight-booking-Service) . [Notification Service](https://github.com/Sourabh-km13/flight-notification-service)
 
 **Live demo:** https://flight-frontend-eight.vercel.app/ · **API:** https://api-gateway-flight.onrender.com
 
-![FlySmart traveler flow](docs/screenshots/hero.png)
+![FlySmart traveler flow](<img width="2292" height="1174" alt="Architecture_flight" src="https://github.com/user-attachments/assets/937bf042-88b6-442b-a1f7-8786e7027ed9" />
+)
 
 ---
 
@@ -194,27 +195,6 @@ VITE_API_BASE_URL=http://localhost:3001
 - **API integration** — a single shared Axios instance against a gateway, with consistent response/error parsing.
 - **UX for distributed systems** — a cold-start wake gate and a live seat-hold payment countdown that mirrors backend expiry.
 - **Product thinking** — separate traveler and admin experiences mapped cleanly onto backend RBAC.
-
----
-
-## Screenshots
-
-| Traveler | Admin |
-|----------|-------|
-| ![Traveler](docs/screenshots/hero.png) | ![Admin dashboard](docs/screenshots/admin-crud.png) |
-
-> Add images under [`docs/screenshots`](docs/screenshots).
-
----
-
-## Related repositories
-
-| Service | Role |
-|---------|------|
-| [FlySmart overview](../README.md) | Platform overview + live demo |
-| [Api_Gateway_Flight](../Api_Gateway_Flight) | Auth, RBAC, rate limiting, reverse proxy |
-| [Flight-Service](../Flight-Service) | Airplanes, cities, airports, flights, seat inventory |
-| [Flight-booking-Service](../Flight-booking-Service) | Bookings, payment hold, cron expiry, notifications |
 
 ---
 
